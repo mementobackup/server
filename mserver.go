@@ -32,12 +32,17 @@ M,month               Monthly backup
 `
 
 func check_structure(repository string) {
-	directories := []string{"hour", "day", "week", "month"}
+	directories := []string{
+		"hour",
+		"day",
+		"week",
+		"month",
+	}
 
 	if _, err := os.Stat(repository); err != nil {
-		for i := 0; i < len(directories); i++ {
+		for _, dir := range directories {
 			if os.IsNotExist(err) {
-				os.MkdirAll(repository+string(filepath.Separator)+directories[i], 0755)
+				os.MkdirAll(repository+string(filepath.Separator)+dir, 0755)
 			}
 		}
 	}
