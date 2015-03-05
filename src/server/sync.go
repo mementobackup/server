@@ -23,10 +23,18 @@ func contains(s []string, e string) bool {
 	return false
 }
 
+func getdataset(grace int) int {
+	return -1
+}
+
 func Sync(cfg *conf.ConfigFile, grace string) {
+	var dataset, datasets int
 	var sections []string
 
 	sections = cfg.GetSections()
+	datasets, _ = cfg.GetInt("dataset", grace)
+	dataset = getdataset(datasets)
+	fmt.Println("dataset: ", dataset)
 
 	for _, section := range sections {
 		if !contains(SECT_RESERVED, section) {
