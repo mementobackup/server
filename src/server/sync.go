@@ -12,6 +12,8 @@ import (
 	"fmt"
 )
 
+var SECT_RESERVED = []string{"default", "general", "database", "dataset"}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
@@ -22,10 +24,12 @@ func contains(s []string, e string) bool {
 }
 
 func Sync(cfg *conf.ConfigFile, grace string) {
-	sections := cfg.GetSections()
+	var sections []string
+
+	sections = cfg.GetSections()
 
 	for _, section := range sections {
-		if !contains([]string{"default", "general", "database", "dataset"}, section) {
+		if !contains(SECT_RESERVED, section) {
 			fmt.Println(section) // TODO: add code for process a section
 		}
 	}
