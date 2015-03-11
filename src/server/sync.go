@@ -10,6 +10,7 @@ package server
 import (
 	"code.google.com/p/goconf/conf"
 	"fmt"
+	"server/database"
 )
 
 var SECT_RESERVED = []string{"default", "general", "database", "dataset"}
@@ -23,18 +24,27 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func getdataset(grace int) int {
-	return -1
-}
-
 func Sync(cfg *conf.ConfigFile, grace string) {
-	var dataset, datasets int
+	var db database.DB
+
+	var dataset, maxdatasets int
 	var sections []string
 
+	db.Open(cfg)
+	defer db.Close()
+
 	sections = cfg.GetSections()
-	datasets, _ = cfg.GetInt("dataset", grace)
-	dataset = getdataset(datasets)
-	fmt.Println("dataset: ", dataset)
+
+	maxdatasets, _ = cfg.GetInt("dataset", grace)
+	dataset = database.Getdataset(&db, grace)
+
+	if nextds := dataset + 1; nextds > maxdatasets {
+		dataset = 1
+	} else {
+		dataset = dataset + 1
+	}
+
+	fmt.Println("dataset:", dataset)
 
 	for _, section := range sections {
 		if !contains(SECT_RESERVED, section) {
