@@ -59,6 +59,32 @@ func main() {
 	opts := s.Parse(os.Args[1:])
 	grace := ""
 
+	// Read Ini file (mandatory)
+	if !opts.GetBool("cfg") {
+		// If configuration file is not passed, print help and exit
+		s.PrintUsageAndExit("No configuration file passed")
+	}
+
+	// Read grace (mandatory)
+	if opts.GetBool("hour") {
+		grace = "hour"
+	} else if opts.GetBool("day") {
+		grace = "day"
+	} else if opts.GetBool("week") {
+		grace = "week"
+	} else if opts.GetBool("month") {
+		grace = "month"
+	} else {
+		// If grace is not selected, print help and exit
+		s.PrintUsageAndExit("No grace selected")
+	}
+
+	cfg, err := conf.ReadConfigFile(opts.Get("cfg"))
+	if err != nil {
+		fmt.Println("Error about reading config file:", err)
+		os.Exit(3)
+	}
+
 	// Print version and exit
 	if opts.GetBool("version") {
 		fmt.Println("Memento server " + VERSION)
@@ -70,34 +96,8 @@ func main() {
 		s.PrintUsageAndExit("Memento server " + VERSION)
 	}
 
-	if opts.GetBool("hour") {
-		grace = "hour"
-	} else if opts.GetBool("day") {
-		grace = "day"
-	} else if opts.GetBool("week") {
-		grace = "week"
-	} else if opts.GetBool("month") {
-		grace = "month"
-	} else {
-		// If grace is not selected, exit with status code 2
-		fmt.Println("No grace selected")
-		os.Exit(2)
-	}
+	repository, _ := cfg.GetString("general", "repository")
+	check_structure(repository)
 
-	// Read Ini file
-	if opts.GetBool("cfg") {
-		cfg, err := conf.ReadConfigFile(opts.Get("cfg"))
-		if err != nil {
-			fmt.Println("Error: ", err)
-		}
-		repository, _ := cfg.GetString("general", "repository")
-		check_structure(repository)
-
-		server.Sync(cfg, grace)
-
-	} else {
-		// If configuration file is not passed, exit with status code 1
-		fmt.Println("No configuration file passed, see help")
-		os.Exit(1)
-	}
+	server.Sync(cfg, grace)
 }
