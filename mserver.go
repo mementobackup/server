@@ -79,12 +79,6 @@ func main() {
 		s.PrintUsageAndExit("No grace selected")
 	}
 
-	cfg, err := conf.ReadConfigFile(opts.Get("cfg"))
-	if err != nil {
-		fmt.Println("Error about reading config file:", err)
-		os.Exit(3)
-	}
-
 	// Print version and exit
 	if opts.GetBool("version") {
 		fmt.Println("Memento server " + VERSION)
@@ -94,6 +88,12 @@ func main() {
 	// Print help and exit
 	if opts.GetBool("help") {
 		s.PrintUsageAndExit("Memento server " + VERSION)
+	}
+
+	cfg, err := conf.ReadConfigFile(opts.Get("cfg"))
+	if err != nil {
+		fmt.Println("Error about reading config file:", err)
+		os.Exit(1)
 	}
 
 	repository, _ := cfg.GetString("general", "repository")
