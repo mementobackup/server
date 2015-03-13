@@ -8,12 +8,12 @@
 package server
 
 import (
-	"code.google.com/p/goconf/conf"
 	"fmt"
+	"github.com/go-ini/ini"
 	"server/database"
 )
 
-var SECT_RESERVED = []string{"default", "general", "database", "dataset"}
+var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
@@ -24,18 +24,18 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func Sync(cfg *conf.ConfigFile, grace string) {
+func Sync(cfg *ini.File, grace string) {
 	var db database.DB
 
 	var dataset, maxdatasets int
-	var sections []string
+	var sections []*ini.Section
 
 	db.Open(cfg)
 	defer db.Close()
 
-	sections = cfg.GetSections()
+	sections = cfg.Sections()
 
-	maxdatasets, _ = cfg.GetInt("dataset", grace)
+	maxdatasets, _ = cfg.Section("dataset").Key(grace).Int()
 	dataset = database.Getdataset(&db, grace)
 
 	if nextds := dataset + 1; nextds > maxdatasets {
@@ -47,8 +47,8 @@ func Sync(cfg *conf.ConfigFile, grace string) {
 	fmt.Println("dataset:", dataset)
 
 	for _, section := range sections {
-		if !contains(SECT_RESERVED, section) {
-			fmt.Println(section) // TODO: add code for process a section
+		if !contains(SECT_RESERVED, section.Name()) {
+			fmt.Println(section.Name()) // TODO: add code for process a section
 		}
 	}
 }

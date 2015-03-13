@@ -8,8 +8,8 @@
 package database
 
 import (
-	"code.google.com/p/goconf/conf"
 	"database/sql"
+	"github.com/go-ini/ini"
 	_ "github.com/nakagami/firebirdsql"
 	"log"
 )
@@ -23,15 +23,15 @@ type DB struct {
 	Conn     *sql.DB
 }
 
-func (db *DB) populate(cfg *conf.ConfigFile) {
-	db.User, _ = cfg.GetString("database", "user")
-	db.Password, _ = cfg.GetString("database", "password")
-	db.Host, _ = cfg.GetString("database", "host")
-	db.Port, _ = cfg.GetString("database", "port")
-	db.Database, _ = cfg.GetString("database", "dbname")
+func (db *DB) populate(cfg *ini.File) {
+	db.User = cfg.Section("database").Key("user").String()
+	db.Password = cfg.Section("database").Key("password").String()
+	db.Host = cfg.Section("database").Key("host").String()
+	db.Port = cfg.Section("database").Key("port").String()
+	db.Database = cfg.Section("database").Key("dbname").String()
 }
 
-func (db *DB) Open(cfg *conf.ConfigFile) {
+func (db *DB) Open(cfg *ini.File) {
 	var err error
 
 	db.populate(cfg)

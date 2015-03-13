@@ -8,9 +8,9 @@
 package main
 
 import (
-	"code.google.com/p/goconf/conf"
 	"fmt"
 	"github.com/gaal/go-options/options"
+	"github.com/go-ini/ini"
 	"os"
 	"path/filepath"
 	"server"
@@ -90,13 +90,13 @@ func main() {
 		s.PrintUsageAndExit("Memento server " + VERSION)
 	}
 
-	cfg, err := conf.ReadConfigFile(opts.Get("cfg"))
+	cfg, err := ini.Load([]byte{}, opts.Get("cfg"))
 	if err != nil {
 		fmt.Println("Error about reading config file:", err)
 		os.Exit(1)
 	}
 
-	repository, _ := cfg.GetString("general", "repository")
+	repository := cfg.Section("general").Key("repository").String()
 	check_structure(repository)
 
 	server.Sync(cfg, grace)
