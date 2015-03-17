@@ -8,12 +8,18 @@
 package server
 
 import (
-	"fmt"
 	"github.com/go-ini/ini"
 	"server/database"
+	"sync"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
+
+type Section struct {
+	Section *ini.Section
+	Grace   string
+	Dataset int
+}
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
@@ -25,7 +31,10 @@ func contains(s []string, e string) bool {
 }
 
 func Sync(cfg *ini.File, grace string) {
+	const POOL = 5
 	var db database.DB
+	var c = make(chan bool, POOL)
+	var wg = new(sync.WaitGroup)
 
 	var dataset, maxdatasets int
 	var sections []*ini.Section
@@ -44,11 +53,29 @@ func Sync(cfg *ini.File, grace string) {
 		dataset = dataset + 1
 	}
 
-	fmt.Println("dataset:", dataset)
-
+	wg.Add(len(sections) - len(SECT_RESERVED))
 	for _, section := range sections {
 		if !contains(SECT_RESERVED, section.Name()) {
-			fmt.Println(section.Name()) // TODO: add code for process a section
+			if section.Key("type").String() == "file" { // FIXME: useless?
+				s := Section{
+					section,
+					grace,
+					dataset,
+				}
+
+				go call(&s, c, wg)
+				c <- true
+			}
 		}
 	}
+	wg.Wait() // Wait for all the children to die
+	close(c)
+}
+
+func call(section *Section, c chan bool, wg *sync.WaitGroup) {
+	defer func() {
+		<-c
+		wg.Done()
+	}()
+	syncfile(section)
 }
