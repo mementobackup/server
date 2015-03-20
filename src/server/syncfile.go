@@ -14,7 +14,7 @@ import (
     "time"
     "crypto/tls"
     "crypto/rand"
-    "io/ioutil"
+"bufio"
 )
 
 func getsocket(cfg *ini.Section) net.Conn {
@@ -64,18 +64,22 @@ func fs_metadata() {
 }
 
 func syncfile(section *Section) {
+    var result []byte
+
 	conn := getsocket(section.Section)
     defer conn.Close()
+
+    buff := bufio.NewReader(conn)
 
 	// Execute pre_command
 	if section.Section.Key("pre_command").String() != "" {
         _, err := conn.Write([]byte(section.Section.Key("pre_command").String() + "\n"))
-        result, err := ioutil.ReadAll(conn)
+        result, err = buff.ReadBytes('\n')
         if err != nil {
             //TODO: manage error
             fmt.Println(err.Error())
         }
-        fmt.Println(result)
+        fmt.Println(string(result))
 	}
 
 	fs_metadata()
@@ -83,8 +87,10 @@ func syncfile(section *Section) {
 	// Execute post_command
 	if section.Section.Key("post_command").String() != "" {
         _, err := conn.Write([]byte(section.Section.Key("post_command").String()))
+        result, err = buff.ReadBytes('\n')
         if err != nil {
             //TODO: manage error
         }
+        fmt.Println(string(result))
 	}
 }
