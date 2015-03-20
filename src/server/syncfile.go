@@ -15,9 +15,11 @@ import (
 	"github.com/go-ini/ini"
 	"net"
 	"time"
+    "bitbucket.org/ebianchi/memento-common/common"
 )
 
-func getsocket(cfg *ini.Section) net.Conn {
+func getsocket(cfg *ini.Section) (net.Conn, *bufio.Reader) {
+    var buff *bufio.Reader
 	var conn net.Conn
 	var tcpAddr *net.TCPAddr
 	var err error
@@ -56,7 +58,8 @@ func getsocket(cfg *ini.Section) net.Conn {
 		}
 		fmt.Printf("%T\n", conn)
 	}
-	return conn
+    buff = bufio.NewReader(conn)
+	return conn, buff
 }
 
 func fs_metadata() {
@@ -64,33 +67,59 @@ func fs_metadata() {
 }
 
 func syncfile(section *Section) {
-	var result []byte
-
-	conn := getsocket(section.Section)
-	defer conn.Close()
-
-	buff := bufio.NewReader(conn)
+    var buff *bufio.Reader
+    var cmd common.JSONMessage
+    var conn net.Conn
+    var err error
+    var result []byte
 
 	// Execute pre_command
 	if section.Section.Key("pre_command").String() != "" {
-		_, err := conn.Write([]byte(section.Section.Key("pre_command").String() + "\n"))
-		result, err = buff.ReadBytes('\n')
-		if err != nil {
-			//TODO: manage error
-			fmt.Println(err.Error())
-		}
-		fmt.Println(string(result))
+        conn, buff = getsocket(section.Section)
+
+        cmd = common.JSONMessage{}
+        cmd.Context = "system"
+        cmd.Command.Name = "exec"
+        cmd.Command.Value = section.Section.Key("pre_command").String()
+
+        if err = cmd.Send(conn); err != nil {
+            //TODO: manage error
+            fmt.Println("Sending failed: " + err.Error())
+        } else {
+            result, err = buff.ReadBytes('\n')
+            if err != nil {
+                //TODO: manage error
+                fmt.Println("Receive failed: " + err.Error())
+            }
+            fmt.Println(string(result))
+        }
+        conn.Close()
 	}
 
+    conn, buff = getsocket(section.Section)
 	fs_metadata()
+    conn.Close()
 
 	// Execute post_command
 	if section.Section.Key("post_command").String() != "" {
-		_, err := conn.Write([]byte(section.Section.Key("post_command").String()))
-		result, err = buff.ReadBytes('\n')
-		if err != nil {
-			//TODO: manage error
-		}
-		fmt.Println(string(result))
-	}
+        conn, buff = getsocket(section.Section)
+
+        cmd = common.JSONMessage{}
+        cmd.Context = "system"
+        cmd.Command.Name = "exec"
+        cmd.Command.Value = section.Section.Key("post_command").String()
+
+        if err = cmd.Send(conn); err != nil {
+            //TODO: manage error
+            fmt.Println("Sending failed: " + err.Error())
+        } else {
+            result, err = buff.ReadBytes('\n')
+            if err != nil {
+                //TODO: manage error
+                fmt.Println("Receive failed: " + err.Error())
+            }
+            fmt.Println(string(result))
+        }
+        conn.Close()
+    }
 }
