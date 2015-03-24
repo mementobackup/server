@@ -63,7 +63,7 @@ func Sync(cfg *ini.File, grace string) {
 					dataset,
 				}
 
-				go call(&s, c, wg)
+				go filesync(&s, c, wg)
 				c <- true
 			}
 		}
@@ -72,7 +72,7 @@ func Sync(cfg *ini.File, grace string) {
 	close(c)
 }
 
-func call(section *Section, c chan bool, wg *sync.WaitGroup) {
+func filesync(section *Section, c chan bool, wg *sync.WaitGroup) {
 	defer func() {
 		<-c
 		wg.Done()
