@@ -8,15 +8,15 @@
 package sync
 
 import (
+	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"crypto/rand"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"github.com/go-ini/ini"
 	"net"
 	"time"
-    "bitbucket.org/ebianchi/memento-common/common"
-    "errors"
 )
 
 func getsocket(cfg *ini.Section) (net.Conn, error) {
@@ -31,14 +31,14 @@ func getsocket(cfg *ini.Section) (net.Conn, error) {
 	tcpAddr, err = net.ResolveTCPAddr("tcp", address)
 
 	if err != nil {
-        return nil, err
+		return nil, err
 	}
 
 	if cfg.Key("ssl").MustBool() {
 		cert, err := tls.LoadX509KeyPair(cfg.Key("sslkey").String(), cfg.Key("sslprivate").String())
 		if err != nil {
-            err = errors.New("Error when loading SSL certificate: " + err.Error())
-            return nil, err
+			err = errors.New("Error when loading SSL certificate: " + err.Error())
+			return nil, err
 		}
 
 		config := tls.Config{Certificates: []tls.Certificate{cert}}
@@ -48,14 +48,14 @@ func getsocket(cfg *ini.Section) (net.Conn, error) {
 		config.Rand = rand.Reader
 
 		conn, err = tls.Dial("tcp", tcpAddr.String(), &config)
-        if err != nil {
-            return nil, err
-        }
+		if err != nil {
+			return nil, err
+		}
 
 	} else {
 		conn, err = net.Dial("tcp", tcpAddr.String())
 		if err != nil {
-            return nil, err
+			return nil, err
 		}
 	}
 
@@ -67,39 +67,39 @@ func fs_metadata() {
 }
 
 func Filesync(section *Section) {
-    var buff *bufio.Reader
-    var cmd common.JSONMessage
-    var conn net.Conn
-    var err error
-    var result []byte
+	var buff *bufio.Reader
+	var cmd common.JSONMessage
+	var conn net.Conn
+	var err error
+	var result []byte
 
 	// Execute pre_command
 	if section.Section.Key("pre_command").String() != "" {
 		conn, err = getsocket(section.Section)
-        if err != nil {
-            //TODO: manage error
-            fmt.Println("Error: " + err.Error())
-            return
-        }
-        buff = bufio.NewReader(conn)
+		if err != nil {
+			//TODO: manage error
+			fmt.Println("Error: " + err.Error())
+			return
+		}
+		buff = bufio.NewReader(conn)
 
-        cmd = common.JSONMessage{}
-        cmd.Context = "system"
-        cmd.Command.Name = "exec"
-        cmd.Command.Value = section.Section.Key("pre_command").String()
+		cmd = common.JSONMessage{}
+		cmd.Context = "system"
+		cmd.Command.Name = "exec"
+		cmd.Command.Value = section.Section.Key("pre_command").String()
 
-        if err = cmd.Send(conn); err != nil {
-            //TODO: manage error
-            fmt.Println("Sending failed: " + err.Error())
-        } else {
-            result, err = buff.ReadBytes('\n')
-            if err != nil {
-                //TODO: manage error
-                fmt.Println("Receive failed: " + err.Error())
-            }
-            fmt.Println(string(result))
-        }
-        conn.Close()
+		if err = cmd.Send(conn); err != nil {
+			//TODO: manage error
+			fmt.Println("Sending failed: " + err.Error())
+		} else {
+			result, err = buff.ReadBytes('\n')
+			if err != nil {
+				//TODO: manage error
+				fmt.Println("Receive failed: " + err.Error())
+			}
+			fmt.Println(string(result))
+		}
+		conn.Close()
 	}
 
 	conn, err = getsocket(section.Section)
@@ -108,30 +108,30 @@ func Filesync(section *Section) {
 
 	// Execute post_command
 	if section.Section.Key("post_command").String() != "" {
-        conn, err = getsocket(section.Section)
-        if err != nil {
-            //TODO: manage error
-            fmt.Println("Error: " + err.Error())
-            return
-        }
-        buff = bufio.NewReader(conn)
+		conn, err = getsocket(section.Section)
+		if err != nil {
+			//TODO: manage error
+			fmt.Println("Error: " + err.Error())
+			return
+		}
+		buff = bufio.NewReader(conn)
 
-        cmd = common.JSONMessage{}
-        cmd.Context = "system"
-        cmd.Command.Name = "exec"
-        cmd.Command.Value = section.Section.Key("post_command").String()
+		cmd = common.JSONMessage{}
+		cmd.Context = "system"
+		cmd.Command.Name = "exec"
+		cmd.Command.Value = section.Section.Key("post_command").String()
 
-        if err = cmd.Send(conn); err != nil {
-            //TODO: manage error
-            fmt.Println("Sending failed: " + err.Error())
-        } else {
-            result, err = buff.ReadBytes('\n')
-            if err != nil {
-                //TODO: manage error
-                fmt.Println("Receive failed: " + err.Error())
-            }
-            fmt.Println(string(result))
-        }
-        conn.Close()
-    }
+		if err = cmd.Send(conn); err != nil {
+			//TODO: manage error
+			fmt.Println("Sending failed: " + err.Error())
+		} else {
+			result, err = buff.ReadBytes('\n')
+			if err != nil {
+				//TODO: manage error
+				fmt.Println("Receive failed: " + err.Error())
+			}
+			fmt.Println(string(result))
+		}
+		conn.Close()
+	}
 }

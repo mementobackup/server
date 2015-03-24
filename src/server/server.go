@@ -10,7 +10,7 @@ package server
 import (
 	"github.com/go-ini/ini"
 	"server/database"
-    "server/sync"
+	"server/sync"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
