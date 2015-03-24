@@ -16,10 +16,10 @@ import (
 	"net"
 	"time"
     "bitbucket.org/ebianchi/memento-common/common"
+    "errors"
 )
 
-func getsocket(cfg *ini.Section) (net.Conn, *bufio.Reader) {
-    var buff *bufio.Reader
+func getsocket(cfg *ini.Section) (net.Conn, error) {
 	var conn net.Conn
 	var tcpAddr *net.TCPAddr
 	var err error
@@ -31,14 +31,14 @@ func getsocket(cfg *ini.Section) (net.Conn, *bufio.Reader) {
 	tcpAddr, err = net.ResolveTCPAddr("tcp", address)
 
 	if err != nil {
-		// TODO: manage error
-		fmt.Println(err.Error())
+        return nil, err
 	}
 
 	if cfg.Key("ssl").MustBool() {
 		cert, err := tls.LoadX509KeyPair(cfg.Key("sslkey").String(), cfg.Key("sslprivate").String())
 		if err != nil {
-			//TODO: manage error
+            err = errors.New("Error when loading SSL certificate: " + err.Error())
+            return nil, err
 		}
 
 		config := tls.Config{Certificates: []tls.Certificate{cert}}
@@ -48,18 +48,18 @@ func getsocket(cfg *ini.Section) (net.Conn, *bufio.Reader) {
 		config.Rand = rand.Reader
 
 		conn, err = tls.Dial("tcp", tcpAddr.String(), &config)
+        if err != nil {
+            return nil, err
+        }
 
 	} else {
-
 		conn, err = net.Dial("tcp", tcpAddr.String())
 		if err != nil {
-			// TODO: manage error
-			fmt.Println(err.Error())
+            return nil, err
 		}
-		fmt.Printf("%T\n", conn)
 	}
-    buff = bufio.NewReader(conn)
-	return conn, buff
+
+	return conn, err
 }
 
 func fs_metadata() {
@@ -75,7 +75,13 @@ func syncfile(section *Section) {
 
 	// Execute pre_command
 	if section.Section.Key("pre_command").String() != "" {
-        conn, buff = getsocket(section.Section)
+		conn, err = getsocket(section.Section)
+        if err != nil {
+            //TODO: manage error
+            fmt.Println("Error: " + err.Error())
+            return
+        }
+        buff = bufio.NewReader(conn)
 
         cmd = common.JSONMessage{}
         cmd.Context = "system"
@@ -96,13 +102,19 @@ func syncfile(section *Section) {
         conn.Close()
 	}
 
-    conn, buff = getsocket(section.Section)
+	conn, err = getsocket(section.Section)
 	fs_metadata()
-    conn.Close()
+	conn.Close()
 
 	// Execute post_command
 	if section.Section.Key("post_command").String() != "" {
-        conn, buff = getsocket(section.Section)
+        conn, err = getsocket(section.Section)
+        if err != nil {
+            //TODO: manage error
+            fmt.Println("Error: " + err.Error())
+            return
+        }
+        buff = bufio.NewReader(conn)
 
         cmd = common.JSONMessage{}
         cmd.Context = "system"
