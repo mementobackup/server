@@ -5,7 +5,7 @@
  License       GPL version 2 (see GPL.txt for details)
 */
 
-package server
+package sync
 
 import (
 	"bufio"
@@ -66,7 +66,7 @@ func fs_metadata() {
 	// TODO: write code for getting file's metadata from client
 }
 
-func syncfile(section *Section) {
+func Filesync(section *Section) {
     var buff *bufio.Reader
     var cmd common.JSONMessage
     var conn net.Conn

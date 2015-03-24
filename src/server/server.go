@@ -10,7 +10,7 @@ package server
 import (
 	"github.com/go-ini/ini"
 	"server/database"
-	"sync"
+    "server/sync"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
@@ -77,5 +77,5 @@ func call(section *Section, c chan bool, wg *sync.WaitGroup) {
 		<-c
 		wg.Done()
 	}()
-	syncfile(section)
+	sync.Filesync(section)
 }
