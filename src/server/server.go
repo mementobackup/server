@@ -10,16 +10,12 @@ package server
 import (
 	"github.com/go-ini/ini"
 	"server/database"
-	"server/sync"
+	"server/generic"
+	"server/syncing"
+	"sync"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
-
-type Section struct {
-	Section *ini.Section
-	Grace   string
-	Dataset int
-}
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
@@ -57,7 +53,7 @@ func Sync(cfg *ini.File, grace string) {
 	for _, section := range sections {
 		if !contains(SECT_RESERVED, section.Name()) {
 			if section.Key("type").String() == "file" { // FIXME: useless?
-				s := Section{
+				s := generic.Section{
 					section,
 					grace,
 					dataset,
@@ -72,10 +68,10 @@ func Sync(cfg *ini.File, grace string) {
 	close(c)
 }
 
-func filesync(section *Section, c chan bool, wg *sync.WaitGroup) {
+func filesync(section *generic.Section, c chan bool, wg *sync.WaitGroup) {
 	defer func() {
 		<-c
 		wg.Done()
 	}()
-	sync.Filesync(section)
+	syncing.Filesync(section)
 }

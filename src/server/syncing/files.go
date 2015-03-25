@@ -5,7 +5,7 @@
  License       GPL version 2 (see GPL.txt for details)
 */
 
-package sync
+package syncing
 
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"github.com/go-ini/ini"
 	"net"
+	"server/generic"
 	"time"
 )
 
@@ -66,7 +67,7 @@ func fs_metadata() {
 	// TODO: write code for getting file's metadata from client
 }
 
-func Filesync(section *Section) {
+func Filesync(section *generic.Section) {
 	var buff *bufio.Reader
 	var cmd common.JSONMessage
 	var conn net.Conn
