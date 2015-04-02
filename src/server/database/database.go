@@ -11,7 +11,7 @@ import (
 	"database/sql"
 	"github.com/go-ini/ini"
 	_ "github.com/nakagami/firebirdsql"
-	"log"
+	"github.com/op/go-logging"
 )
 
 type DB struct {
@@ -31,7 +31,7 @@ func (db *DB) populate(cfg *ini.File) {
 	db.Database = cfg.Section("database").Key("dbname").String()
 }
 
-func (db *DB) Open(cfg *ini.File) {
+func (db *DB) Open(log *logging.Logger, cfg *ini.File) {
 	var err error
 
 	db.populate(cfg)
@@ -40,14 +40,17 @@ func (db *DB) Open(cfg *ini.File) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Debug("Connection with database instantied")
 
 	err = db.Conn.Ping()
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Debug("Connection with database opened")
 
 	if err = db.check(); err != nil {
 		db.create()
+		log.Debug("Created database schema")
 	}
 }
 

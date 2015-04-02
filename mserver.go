@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/gaal/go-options/options"
 	"github.com/go-ini/ini"
+	"github.com/op/go-logging"
 	"os"
 	"path/filepath"
 	"server"
@@ -46,6 +47,29 @@ func check_structure(repository string) {
 			}
 		}
 	}
+}
+
+func setlog(level logging.Level, filename string) *logging.Logger {
+	var backend *logging.LogBackend
+	var log = logging.MustGetLogger("Memento Server")
+	var format = logging.MustStringFormatter(
+		"%{time:2006-01-02 15:04:05.000} %{level} Memento - %{message}",
+	)
+
+	if filename == "" {
+		backend = logging.NewLogBackend(os.Stderr, "", 0)
+	} else {
+		fo, _ := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+		backend = logging.NewLogBackend(fo, "", 0)
+	}
+
+	backendLeveled := logging.AddModuleLevel(backend)
+	backendLeveled.SetLevel(level, "")
+
+	logging.SetBackend(backendLeveled)
+	logging.SetFormatter(format)
+
+	return log
 }
 
 func main() {
@@ -99,5 +123,13 @@ func main() {
 	repository := cfg.Section("general").Key("repository").String()
 	check_structure(repository)
 
-	server.Sync(cfg, grace)
+	loglevel, _ := logging.LogLevel(cfg.Section("general").Key("log_level").String())
+	log := setlog(loglevel, cfg.Section("general").Key("log_file").String())
+
+	log.Info("Started version " + VERSION)
+	log.Debug("Grace selected: " + grace)
+
+	server.Sync(log, cfg, grace)
+
+	log.Info("Ended version " + VERSION)
 }

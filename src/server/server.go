@@ -9,9 +9,11 @@ package server
 
 import (
 	"github.com/go-ini/ini"
+	"github.com/op/go-logging"
 	"server/database"
 	"server/generic"
 	"server/syncing"
+	"strconv"
 	"sync"
 )
 
@@ -26,7 +28,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func Sync(cfg *ini.File, grace string) {
+func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	const POOL = 5
 	var db database.DB
 	var c = make(chan bool, POOL)
@@ -35,7 +37,7 @@ func Sync(cfg *ini.File, grace string) {
 	var dataset, maxdatasets int
 	var sections []*ini.Section
 
-	db.Open(cfg)
+	db.Open(log, cfg)
 	defer db.Close()
 
 	sections = cfg.Sections()
@@ -48,6 +50,7 @@ func Sync(cfg *ini.File, grace string) {
 	} else {
 		dataset = dataset + 1
 	}
+	log.Info("Dataset processed: " + strconv.Itoa(dataset))
 
 	wg.Add(len(sections) - len(SECT_RESERVED))
 	for _, section := range sections {
@@ -59,7 +62,7 @@ func Sync(cfg *ini.File, grace string) {
 					dataset,
 				}
 
-				go filesync(&s, c, wg)
+				go filesync(log, &s, c, wg)
 				c <- true
 			}
 		}
@@ -68,10 +71,11 @@ func Sync(cfg *ini.File, grace string) {
 	close(c)
 }
 
-func filesync(section *generic.Section, c chan bool, wg *sync.WaitGroup) {
+func filesync(log *logging.Logger, section *generic.Section, c chan bool, wg *sync.WaitGroup) {
 	defer func() {
 		<-c
 		wg.Done()
 	}()
-	syncing.Filesync(section)
+	log.Info("About to execute section " + section.Section.Name())
+	syncing.Filesync(log, section)
 }

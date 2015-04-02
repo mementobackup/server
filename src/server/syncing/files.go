@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-ini/ini"
+	"github.com/op/go-logging"
 	"net"
 	"server/generic"
 	"time"
@@ -67,7 +68,7 @@ func fs_metadata() {
 	// TODO: write code for getting file's metadata from client
 }
 
-func Filesync(section *generic.Section) {
+func Filesync(log *logging.Logger, section *generic.Section) {
 	var buff *bufio.Reader
 	var cmd common.JSONMessage
 	var conn net.Conn
@@ -78,8 +79,7 @@ func Filesync(section *generic.Section) {
 	if section.Section.Key("pre_command").String() != "" {
 		conn, err = getsocket(section.Section)
 		if err != nil {
-			//TODO: manage error
-			fmt.Println("Error: " + err.Error())
+			log.Error("Error when executing pre_command: " + err.Error()))
 			return
 		}
 		buff = bufio.NewReader(conn)
@@ -90,17 +90,16 @@ func Filesync(section *generic.Section) {
 		cmd.Command.Value = section.Section.Key("pre_command").String()
 
 		if err = cmd.Send(conn); err != nil {
-			//TODO: manage error
-			fmt.Println("Sending failed: " + err.Error())
+			log.Error("Sending pre_command failed: " + err.Error())
 		} else {
 			result, err = buff.ReadBytes('\n')
 			if err != nil {
-				//TODO: manage error
-				fmt.Println("Receive failed: " + err.Error())
+				log.Error("Receive pre_command result failed: " + err.Error())
 			}
 			fmt.Println(string(result))
 		}
 		conn.Close()
+		log.Debug("Executed pre_command")
 	}
 
 	conn, err = getsocket(section.Section)
@@ -111,8 +110,7 @@ func Filesync(section *generic.Section) {
 	if section.Section.Key("post_command").String() != "" {
 		conn, err = getsocket(section.Section)
 		if err != nil {
-			//TODO: manage error
-			fmt.Println("Error: " + err.Error())
+			log.Error("Sending post_command failed: " + err.Error())
 			return
 		}
 		buff = bufio.NewReader(conn)
@@ -123,16 +121,15 @@ func Filesync(section *generic.Section) {
 		cmd.Command.Value = section.Section.Key("post_command").String()
 
 		if err = cmd.Send(conn); err != nil {
-			//TODO: manage error
-			fmt.Println("Sending failed: " + err.Error())
+			log.Error("Sending post_command failed: " + err.Error())
 		} else {
 			result, err = buff.ReadBytes('\n')
 			if err != nil {
-				//TODO: manage error
-				fmt.Println("Receive failed: " + err.Error())
+				log.Error("Receive post_command result failed: " + err.Error())
 			}
 			fmt.Println(string(result))
 		}
 		conn.Close()
+		log.Debug("Executed post_command")
 	}
 }
