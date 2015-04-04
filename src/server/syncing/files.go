@@ -79,7 +79,7 @@ func Filesync(log *logging.Logger, section *generic.Section) {
 	if section.Section.Key("pre_command").String() != "" {
 		conn, err = getsocket(section.Section)
 		if err != nil {
-			log.Error("Error when executing pre_command: " + err.Error()))
+			log.Error("Error when executing pre_command: " + err.Error())
 			return
 		}
 		buff = bufio.NewReader(conn)
