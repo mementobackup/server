@@ -19,6 +19,7 @@ import (
 	"net"
 	"server/generic"
 	"time"
+	"strings"
 )
 
 func getsocket(cfg *ini.Section) (net.Conn, error) {
@@ -64,7 +65,28 @@ func getsocket(cfg *ini.Section) (net.Conn, error) {
 	return conn, err
 }
 
-func fs_metadata() {
+func fs_metadata(log *logging.Logger, section *generic.Section) {
+	var conn net.Conn
+	var cmd common.JSONMessage
+	var err error
+
+	log.Debug("Getting metadata for " + section.Grace)
+
+	cmd = common.JSONMessage{}
+	cmd.Context = "file"
+	cmd.Command.Name = "list"
+	cmd.Command.Directory = strings.Split(section.Section.Key("path").String(), ",")
+	cmd.Command.ACL = section.Section.Key("acl").MustBool()
+
+	conn, err = getsocket(section.Section)
+	if err != nil {
+		log.Error("Error when getting files metadata for section " + section.Section)
+		log.Debug("Files metadata error: " + err.Error())
+		return
+	}
+
+	conn.Close()
+
 	// TODO: write code for getting file's metadata from client
 }
 
@@ -102,9 +124,7 @@ func Filesync(log *logging.Logger, section *generic.Section) {
 		log.Debug("Executed pre_command")
 	}
 
-	conn, err = getsocket(section.Section)
-	fs_metadata()
-	conn.Close()
+	fs_metadata(log, section)
 
 	// Execute post_command
 	if section.Section.Key("post_command").String() != "" {
