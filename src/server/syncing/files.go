@@ -80,7 +80,7 @@ func fs_metadata(log *logging.Logger, section *generic.Section) {
 
 	conn, err = getsocket(section.Section)
 	if err != nil {
-		log.Error("Error when getting files metadata for section " + section.Section)
+		log.Error("Error when getting files metadata for section " + section.Section.Name())
 		log.Debug("Files metadata error: " + err.Error())
 		return
 	}
