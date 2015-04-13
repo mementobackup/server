@@ -9,11 +9,9 @@ package syncing
 
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
-	"bufio"
 	"crypto/rand"
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"net"
@@ -91,65 +89,11 @@ func fs_metadata(log *logging.Logger, section *generic.Section) {
 }
 
 func Filesync(log *logging.Logger, section *generic.Section) {
-	var buff *bufio.Reader
-	var cmd common.JSONMessage
-	var conn net.Conn
-	var err error
-	var result []byte
-
 	// Execute pre_command
-	if section.Section.Key("pre_command").String() != "" {
-		conn, err = getsocket(section.Section)
-		if err != nil {
-			log.Error("Error when executing pre_command: " + err.Error())
-			return
-		}
-		buff = bufio.NewReader(conn)
-
-		cmd = common.JSONMessage{}
-		cmd.Context = "system"
-		cmd.Command.Name = "exec"
-		cmd.Command.Value = section.Section.Key("pre_command").String()
-
-		if err = cmd.Send(conn); err != nil {
-			log.Error("Sending pre_command failed: " + err.Error())
-		} else {
-			result, err = buff.ReadBytes('\n')
-			if err != nil {
-				log.Error("Receive pre_command result failed: " + err.Error())
-			}
-			fmt.Println(string(result))
-		}
-		conn.Close()
-		log.Debug("Executed pre_command")
-	}
+	exec_command(log, section, "pre_command")
 
 	fs_metadata(log, section)
 
 	// Execute post_command
-	if section.Section.Key("post_command").String() != "" {
-		conn, err = getsocket(section.Section)
-		if err != nil {
-			log.Error("Sending post_command failed: " + err.Error())
-			return
-		}
-		buff = bufio.NewReader(conn)
-
-		cmd = common.JSONMessage{}
-		cmd.Context = "system"
-		cmd.Command.Name = "exec"
-		cmd.Command.Value = section.Section.Key("post_command").String()
-
-		if err = cmd.Send(conn); err != nil {
-			log.Error("Sending post_command failed: " + err.Error())
-		} else {
-			result, err = buff.ReadBytes('\n')
-			if err != nil {
-				log.Error("Receive post_command result failed: " + err.Error())
-			}
-			fmt.Println(string(result))
-		}
-		conn.Close()
-		log.Debug("Executed post_command")
-	}
+	exec_command(log, section, "post_command")
 }
