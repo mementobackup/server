@@ -14,6 +14,7 @@ import (
 	"github.com/op/go-logging"
 	"net"
 	"server/generic"
+	"server/network"
 )
 
 func exec_command(log *logging.Logger, section *generic.Section, command string) {
@@ -24,11 +25,13 @@ func exec_command(log *logging.Logger, section *generic.Section, command string)
 	var result []byte
 
 	if section.Section.Key(command).String() != "" {
-		conn, err = getsocket(section.Section)
+		conn, err = network.Getsocket(section.Section)
 		if err != nil {
 			log.Error("Error when executing " + command + ": " + err.Error())
 			return
 		}
+        defer conn.Close()
+
 		buff = bufio.NewReader(conn)
 
 		cmd = common.JSONMessage{}
@@ -45,7 +48,6 @@ func exec_command(log *logging.Logger, section *generic.Section, command string)
 			}
 			fmt.Println(string(result))
 		}
-		conn.Close()
 		log.Debug("Executed " + command)
 	}
 
