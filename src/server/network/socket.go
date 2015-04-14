@@ -32,13 +32,19 @@ func Getsocket(cfg *ini.Section) (net.Conn, error) {
 	}
 
 	if cfg.Key("ssl").MustBool() {
-		cert, err := tls.LoadX509KeyPair(cfg.Key("sslkey").String(), cfg.Key("sslprivate").String())
+		key := cfg.Key("sslcert").String()
+		private := cfg.Key("sslkey").String()
+
+		cert, err := tls.LoadX509KeyPair(key, private)
 		if err != nil {
 			err = errors.New("Error when loading SSL certificate: " + err.Error())
 			return nil, err
 		}
 
-		config := tls.Config{Certificates: []tls.Certificate{cert}}
+		config := tls.Config{
+			InsecureSkipVerify: true,
+			Certificates:       []tls.Certificate{cert},
+		}
 
 		now := time.Now()
 		config.Time = func() time.Time { return now }

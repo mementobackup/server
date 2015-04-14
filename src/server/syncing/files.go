@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func fs_metadata(log *logging.Logger, section *common.Section) {
+func fs_get_metadata(log *logging.Logger, section *common.Section) {
 	var conn net.Conn
 	var cmd common.JSONMessage
 	var err error
@@ -43,7 +43,8 @@ func Filesync(log *logging.Logger, section *common.Section) {
 	// Execute pre_command
 	exec_command(log, section, "pre_command")
 
-	fs_metadata(log, section)
+	// Retrieve file's metadata
+	fs_get_metadata(log, section)
 
 	// Execute post_command
 	exec_command(log, section, "post_command")
