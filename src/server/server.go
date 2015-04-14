@@ -11,10 +11,10 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"server/database"
-	"server/generic"
 	"server/syncing"
 	"strconv"
 	"sync"
+	"bitbucket.org/ebianchi/memento-common/common"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
@@ -56,7 +56,7 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	for _, section := range sections {
 		if !contains(SECT_RESERVED, section.Name()) {
 			if section.Key("type").String() == "file" { // FIXME: useless?
-				s := generic.Section{
+				s := common.Section{
 					section,
 					grace,
 					dataset,
@@ -71,7 +71,7 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	close(c)
 }
 
-func filesync(log *logging.Logger, section *generic.Section, c chan bool, wg *sync.WaitGroup) {
+func filesync(log *logging.Logger, section *common.Section, c chan bool, wg *sync.WaitGroup) {
 	defer func() {
 		<-c
 		wg.Done()

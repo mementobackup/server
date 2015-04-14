@@ -11,12 +11,11 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"github.com/op/go-logging"
 	"net"
-	"server/generic"
 	"server/network"
 	"strings"
 )
 
-func fs_metadata(log *logging.Logger, section *generic.Section) {
+func fs_metadata(log *logging.Logger, section *common.Section) {
 	var conn net.Conn
 	var cmd common.JSONMessage
 	var err error
@@ -40,7 +39,7 @@ func fs_metadata(log *logging.Logger, section *generic.Section) {
 	// TODO: write code for getting file's metadata from client
 }
 
-func Filesync(log *logging.Logger, section *generic.Section) {
+func Filesync(log *logging.Logger, section *common.Section) {
 	// Execute pre_command
 	exec_command(log, section, "pre_command")
 

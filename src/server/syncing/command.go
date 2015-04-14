@@ -13,11 +13,10 @@ import (
 	"fmt"
 	"github.com/op/go-logging"
 	"net"
-	"server/generic"
 	"server/network"
 )
 
-func exec_command(log *logging.Logger, section *generic.Section, command string) {
+func exec_command(log *logging.Logger, section *common.Section, command string) {
 	var buff *bufio.Reader
 	var conn net.Conn
 	var cmd common.JSONMessage
