@@ -10,6 +10,7 @@ package syncing
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"github.com/op/go-logging"
 	"net"
@@ -20,6 +21,7 @@ func exec_command(log *logging.Logger, section *common.Section, command string) 
 	var buff *bufio.Reader
 	var conn net.Conn
 	var cmd common.JSONMessage
+	var res common.JSONResult
 	var err error
 	var result []byte
 
@@ -29,7 +31,7 @@ func exec_command(log *logging.Logger, section *common.Section, command string) 
 			log.Error("Error when executing " + command + ": " + err.Error())
 			return
 		}
-        defer conn.Close()
+		defer conn.Close()
 
 		buff = bufio.NewReader(conn)
 
@@ -45,6 +47,18 @@ func exec_command(log *logging.Logger, section *common.Section, command string) 
 			if err != nil {
 				log.Error("Receive " + command + " result failed: " + err.Error())
 			}
+
+			err = json.Unmarshal(result, &res)
+			if err != nil {
+				log.Error("Responde result for " + command + " failed: " + err.Error())
+			}
+
+			if res.Result == "ok" {
+				// TODO: manage corrected execution for remote command
+			} else {
+				log.Error("Error in " + command + " execution: " + res.Message)
+			}
+
 			fmt.Println(string(result))
 		}
 		log.Debug("Executed " + command)
