@@ -30,8 +30,8 @@ func fs_get_metadata(log *logging.Logger, section *common.Section) {
 
 	conn, err = network.Getsocket(section.Section)
 	if err != nil {
-		log.Error("Error when getting files metadata for section " + section.Section.Name())
-		log.Debug("Files metadata error: " + err.Error())
+		log.Error("Error when opening connection with section " + section.Section.Name())
+		log.Debug("error: " + err.Error())
 		return
 	}
 	defer conn.Close()
