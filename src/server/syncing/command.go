@@ -11,7 +11,6 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"github.com/op/go-logging"
 	"net"
 	"server/network"
@@ -58,8 +57,6 @@ func exec_command(log *logging.Logger, section *common.Section, command string) 
 			} else {
 				log.Error("Error in " + command + " execution: " + res.Message)
 			}
-
-			fmt.Println(string(result))
 		}
 		log.Debug("Executed " + command)
 	}
