@@ -43,7 +43,7 @@ func exec_command(log *logging.Logger, section *common.Section, command string) 
 		} else {
 			result, err = buff.ReadBytes('\n')
 			if err != nil {
-				log.Error("Receive " + command + "result failed: " + err.Error())
+				log.Error("Receive " + command + " result failed: " + err.Error())
 			}
 			fmt.Println(string(result))
 		}
