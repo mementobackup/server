@@ -9,7 +9,11 @@ package syncing
 
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
+	"bufio"
+	"encoding/json"
+	"fmt"
 	"github.com/op/go-logging"
+	"io"
 	"net"
 	"server/network"
 	"strings"
@@ -18,11 +22,13 @@ import (
 func fs_get_metadata(log *logging.Logger, section *common.Section) {
 	var conn net.Conn
 	var cmd common.JSONMessage
+	var buff *bufio.Reader
+	var res common.JSONResult
+	var data []byte
 	var err error
 
-	log.Debug("Getting metadata for " + section.Grace)
+	log.Debug("Getting metadata for " + section.Section.Name())
 
-	cmd = common.JSONMessage{}
 	cmd.Context = "file"
 	cmd.Command.Name = "list"
 	cmd.Command.Directory = strings.Split(section.Section.Key("path").String(), ",")
@@ -36,7 +42,33 @@ func fs_get_metadata(log *logging.Logger, section *common.Section) {
 	}
 	defer conn.Close()
 
-	// TODO: write code for getting file's metadata from client
+	cmd.Send(conn)
+
+	buff = bufio.NewReader(conn)
+	for {
+		data, err = buff.ReadBytes('\n')
+
+		if err != nil {
+			if err == io.EOF {
+				log.Debug("All data in connection are readed, exit")
+				return
+			}
+
+			log.Error("Error when getting files metadata for section " + section.Section.Name())
+			log.Debug("error: " + err.Error())
+			return
+		}
+
+		err = json.Unmarshal(data, &res)
+		if err != nil {
+			log.Error("Error when parsing JSON data for section " + section.Section.Name())
+			log.Debug("error: " + err.Error())
+			return
+		}
+
+		// TODO: save metadata into database
+		fmt.Printf("%v \n", res)
+	}
 }
 
 func Filesync(log *logging.Logger, section *common.Section) {
