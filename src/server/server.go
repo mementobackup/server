@@ -8,13 +8,13 @@
 package server
 
 import (
+	"bitbucket.org/ebianchi/memento-common/common"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"server/database"
 	"server/syncing"
 	"strconv"
 	"sync"
-	"bitbucket.org/ebianchi/memento-common/common"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
@@ -56,13 +56,14 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	for _, section := range sections {
 		if !contains(SECT_RESERVED, section.Name()) {
 			if section.Key("type").String() == "file" { // FIXME: useless?
-				s := common.Section{
-					section,
-					grace,
-					dataset,
+				sect := common.Section{
+					Name:       section.Name(),
+					Grace:      grace,
+					Dataset:    dataset,
+					Compressed: section.Key("compress").MustBool(),
 				}
 
-				go filesync(log, &s, c, wg)
+				go filesync(log, &sect, cfg, c, wg)
 				c <- true
 			}
 		}
@@ -71,11 +72,11 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	close(c)
 }
 
-func filesync(log *logging.Logger, section *common.Section, c chan bool, wg *sync.WaitGroup) {
+func filesync(log *logging.Logger, section *common.Section, cfg *ini.File, c chan bool, wg *sync.WaitGroup) {
 	defer func() {
 		<-c
 		wg.Done()
 	}()
-	log.Info("About to execute section " + section.Section.Name())
-	syncing.Filesync(log, section)
+	log.Info("About to execute section " + section.Name)
+	syncing.Filesync(log, section, cfg)
 }

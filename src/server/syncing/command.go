@@ -11,12 +11,13 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"encoding/json"
+	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"net"
 	"server/network"
 )
 
-func exec_command(log *logging.Logger, section *common.Section, command string) {
+func exec_command(log *logging.Logger, section *ini.Section, command string) {
 	var buff *bufio.Reader
 	var conn net.Conn
 	var cmd common.JSONMessage
@@ -24,8 +25,8 @@ func exec_command(log *logging.Logger, section *common.Section, command string) 
 	var err error
 	var result []byte
 
-	if section.Section.Key(command).String() != "" {
-		conn, err = network.Getsocket(section.Section)
+	if section.Key(command).String() != "" {
+		conn, err = network.Getsocket(section)
 		if err != nil {
 			log.Error("Error when executing " + command + ": " + err.Error())
 			return
@@ -37,7 +38,7 @@ func exec_command(log *logging.Logger, section *common.Section, command string) 
 		cmd = common.JSONMessage{}
 		cmd.Context = "system"
 		cmd.Command.Name = "exec"
-		cmd.Command.Value = section.Section.Key(command).String()
+		cmd.Command.Value = section.Key(command).String()
 
 		if err = cmd.Send(conn); err != nil {
 			log.Error("Sending " + command + " failed: " + err.Error())

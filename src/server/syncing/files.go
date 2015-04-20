@@ -12,6 +12,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"io"
 	"net"
@@ -19,7 +20,7 @@ import (
 	"strings"
 )
 
-func fs_get_metadata(log *logging.Logger, section *common.Section) {
+func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var conn net.Conn
 	var cmd common.JSONMessage
 	var buff *bufio.Reader
@@ -27,16 +28,16 @@ func fs_get_metadata(log *logging.Logger, section *common.Section) {
 	var data []byte
 	var err error
 
-	log.Debug("Getting metadata for " + section.Section.Name())
+	log.Debug("Getting metadata for " + section.Name)
 
 	cmd.Context = "file"
 	cmd.Command.Name = "list"
-	cmd.Command.Directory = strings.Split(section.Section.Key("path").String(), ",")
-	cmd.Command.ACL = section.Section.Key("acl").MustBool()
+	cmd.Command.Directory = strings.Split(cfg.Section(section.Name).Key("path").String(), ",")
+	cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
 
-	conn, err = network.Getsocket(section.Section)
+	conn, err = network.Getsocket(cfg.Section(section.Name))
 	if err != nil {
-		log.Error("Error when opening connection with section " + section.Section.Name())
+		log.Error("Error when opening connection with section " + section.Name)
 		log.Debug("error: " + err.Error())
 		return
 	}
@@ -51,17 +52,17 @@ func fs_get_metadata(log *logging.Logger, section *common.Section) {
 		if err != nil {
 			if err == io.EOF {
 				log.Debug("All data in connection are readed, exit")
-				return
+				break
 			}
 
-			log.Error("Error when getting files metadata for section " + section.Section.Name())
+			log.Error("Error when getting files metadata for section " + section.Name)
 			log.Debug("error: " + err.Error())
 			return
 		}
 
 		err = json.Unmarshal(data, &res)
 		if err != nil {
-			log.Error("Error when parsing JSON data for section " + section.Section.Name())
+			log.Error("Error when parsing JSON data for section " + section.Name)
 			log.Debug("error: " + err.Error())
 			return
 		}
@@ -71,13 +72,13 @@ func fs_get_metadata(log *logging.Logger, section *common.Section) {
 	}
 }
 
-func Filesync(log *logging.Logger, section *common.Section) {
+func Filesync(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	// Execute pre_command
-	exec_command(log, section, "pre_command")
+	exec_command(log, cfg.Section(section.Name), "pre_command")
 
 	// Retrieve file's metadata
-	fs_get_metadata(log, section)
+	fs_get_metadata(log, section, cfg)
 
 	// Execute post_command
-	exec_command(log, section, "post_command")
+	exec_command(log, cfg.Section(section.Name), "post_command")
 }
