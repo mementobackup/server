@@ -9,6 +9,8 @@ package database
 
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
+	"fmt"
+	"database/sql"
 )
 
 func Getdataset(db *DB, grace string) int {
@@ -25,16 +27,25 @@ func Getdataset(db *DB, grace string) int {
 }
 
 func Saveattrs(db *DB, section *common.Section, metadata common.JSONFile) {
-	// FIXME: compressed isn't populated, fix it
+	var stmt *sql.Stmt
+	var err error
+
 	var insert = "INSERT INTO attrs" +
 		"(area, grace, dataset, element, os, username, groupname, type," +
 		" link, mtime, ctime, hash, perms, compressed)" +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
-	stmt, _ := db.Conn.Prepare(insert)
+	stmt, err = db.Conn.Prepare(insert)
+	if err != nil {
+		fmt.Println("Prepare error: " + err.Error())
+	}
 	defer stmt.Close()
 
-	stmt.Exec(section.Name, section.Grace, section.Dataset, metadata.Name,
+	_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, metadata.Name,
 		metadata.Os, metadata.User, metadata.Group, metadata.Type, metadata.Link,
-		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, "")
+		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, section.Compressed)
+
+	if err != nil {
+		fmt.Println("Exec error: " + err.Error())
+	}
 }

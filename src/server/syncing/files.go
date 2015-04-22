@@ -11,11 +11,11 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"io"
 	"net"
+	"server/database"
 	"server/network"
 	"strings"
 )
@@ -23,6 +23,7 @@ import (
 func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var conn net.Conn
 	var cmd common.JSONMessage
+	var db database.DB
 	var buff *bufio.Reader
 	var res common.JSONResult
 	var data []byte
@@ -67,8 +68,10 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 			return
 		}
 
-		// TODO: save metadata into database
-		fmt.Printf("%v \n", res)
+		db.Open(log, cfg)
+		defer db.Close()
+
+		database.Saveattrs(&db, section, res.Data)
 	}
 }
 
