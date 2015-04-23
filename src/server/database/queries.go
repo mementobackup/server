@@ -27,6 +27,7 @@ func Getdataset(db *DB, grace string) int {
 }
 
 func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata common.JSONFile) {
+	var tx *sql.Tx
 	var stmt *sql.Stmt
 	var err error
 
@@ -35,11 +36,12 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 		" link, mtime, ctime, hash, perms, compressed)" +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
-	stmt, err = db.Conn.Prepare(insert)
+	tx, err = db.Conn.Begin()
 	if err != nil {
 		log.Error("Transaction error: " + err.Error())
 	}
-	defer stmt.Close()
+
+	stmt, err = tx.Prepare(insert)
 
 	_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, metadata.Name,
 		metadata.Os, metadata.User, metadata.Group, metadata.Type, metadata.Link,
@@ -48,4 +50,7 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 	if err != nil {
 		log.Error("Exec error: " + err.Error())
 	}
+
+	stmt.Close()
+	tx.Commit()
 }
