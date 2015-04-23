@@ -9,8 +9,8 @@ package database
 
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
-	"fmt"
 	"database/sql"
+	"github.com/op/go-logging"
 )
 
 func Getdataset(db *DB, grace string) int {
@@ -26,7 +26,7 @@ func Getdataset(db *DB, grace string) int {
 	return result
 }
 
-func Saveattrs(db *DB, section *common.Section, metadata common.JSONFile) {
+func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata common.JSONFile) {
 	var stmt *sql.Stmt
 	var err error
 
@@ -37,7 +37,7 @@ func Saveattrs(db *DB, section *common.Section, metadata common.JSONFile) {
 
 	stmt, err = db.Conn.Prepare(insert)
 	if err != nil {
-		fmt.Println("Prepare error: " + err.Error())
+		log.Error("Transaction error: " + err.Error())
 	}
 	defer stmt.Close()
 
@@ -46,6 +46,6 @@ func Saveattrs(db *DB, section *common.Section, metadata common.JSONFile) {
 		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, section.Compressed)
 
 	if err != nil {
-		fmt.Println("Exec error: " + err.Error())
+		log.Error("Exec error: " + err.Error())
 	}
 }

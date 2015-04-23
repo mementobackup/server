@@ -71,7 +71,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 		db.Open(log, cfg)
 		defer db.Close()
 
-		database.Saveattrs(&db, section, res.Data)
+		database.Saveattrs(log, &db, section, res.Data)
 	}
 }
 
