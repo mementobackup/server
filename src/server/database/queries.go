@@ -29,12 +29,22 @@ func Getdataset(db *DB, grace string) int {
 func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata common.JSONFile) {
 	var tx *sql.Tx
 	var stmt *sql.Stmt
+	var compressed int
 	var err error
 
 	var insert = "INSERT INTO attrs" +
 		"(area, grace, dataset, element, os, username, groupname, type," +
 		" link, mtime, ctime, hash, perms, compressed)" +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+	// Because Firebird doesn't support BOOLEAN values, and the driver
+	// doesn't convert automatically to int, I need to convert boolean
+	// value to int value
+	if section.Compressed {
+		compressed = 1
+	} else {
+		compressed = 0
+	}
 
 	tx, err = db.Conn.Begin()
 	if err != nil {
@@ -45,7 +55,7 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 
 	_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, metadata.Name,
 		metadata.Os, metadata.User, metadata.Group, metadata.Type, metadata.Link,
-		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, section.Compressed)
+		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, compressed)
 
 	if err != nil {
 		log.Error("Exec error: " + err.Error())
