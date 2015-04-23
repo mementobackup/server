@@ -48,8 +48,8 @@ func (db *DB) Open(log *logging.Logger, cfg *ini.File) {
 	}
 	log.Debug("Connection with database opened")
 
-	if err = db.check(); err != nil {
-		db.create()
+	if err = db.check(log); err != nil {
+		db.create(log)
 		log.Debug("Created database schema")
 	}
 }

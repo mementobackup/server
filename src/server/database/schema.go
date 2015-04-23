@@ -10,10 +10,10 @@ package database
 import (
 	"database/sql"
 	"errors"
-	"log"
+	"github.com/op/go-logging"
 )
 
-func (db *DB) check() error {
+func (db *DB) check(log *logging.Logger) error {
 	var counted int
 
 	query := "SELECT COUNT(rdb$relation_name) " +
@@ -33,7 +33,7 @@ func (db *DB) check() error {
 	}
 }
 
-func (db *DB) create() {
+func (db *DB) create(log *logging.Logger) {
 	var tx *sql.Tx
 	var domains = []string{"CREATE DOMAIN BOOLEAN AS SMALLINT CHECK (value is null or value in (0, 1))"}
 	var indexes = []string{
