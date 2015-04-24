@@ -49,6 +49,7 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 	tx, err = db.Conn.Begin()
 	if err != nil {
 		log.Error("Transaction error: " + err.Error())
+		return
 	}
 
 	stmt, err = tx.Prepare(insert)
@@ -59,6 +60,7 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 
 	if err != nil {
 		log.Error("Exec error: " + err.Error())
+		tx.Rollback()
 	}
 
 	stmt.Close()
