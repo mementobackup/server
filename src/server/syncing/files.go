@@ -48,6 +48,8 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 
 	buff = bufio.NewReader(conn)
 	for {
+		res = common.JSONResult{}
+
 		data, err = buff.ReadBytes('\n')
 
 		if err != nil {

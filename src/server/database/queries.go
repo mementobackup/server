@@ -65,4 +65,46 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 
 	stmt.Close()
 	tx.Commit()
+
+	tx, err = db.Conn.Begin()
+	if err != nil {
+		log.Error("Transaction error: " + err.Error())
+		return
+	}
+
+	saveacls(tx, section, metadata.Name, metadata.Acl)
+}
+
+func saveacls(tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) {
+	var acl common.JSONFileAcl
+	var stmt *sql.Stmt
+	var err error
+
+	var insert = "INSERT INTO acls" +
+		"(area, grace, dataset, element, name, type, perms)" +
+		"VALUES(?, ?, ?, ?, ?, ?, ?)"
+
+	stmt, err = tx.Prepare(insert)
+	if err != nil {
+		// TODO: log error
+		return
+	}
+
+	for _, acl = range acls {
+		if acl.User != "" {
+			_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, element,
+				acl.User, "user", acl.Mode)
+		} else {
+			_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, element,
+				acl.Group, "user", acl.Mode)
+		}
+
+		if err != nil {
+			// TODO: log error
+			tx.Rollback()
+		}
+	}
+
+	stmt.Close()
+	tx.Commit()
 }
