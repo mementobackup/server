@@ -19,8 +19,8 @@ func saveacls(tx *sql.Tx, section *common.Section, element string, acls []common
 	var err error
 
 	var insert = "INSERT INTO acls" +
-	"(area, grace, dataset, element, name, type, perms)" +
-	"VALUES(?, ?, ?, ?, ?, ?, ?)"
+		"(area, grace, dataset, element, name, type, perms)" +
+		"VALUES(?, ?, ?, ?, ?, ?, ?)"
 
 	stmt, err = tx.Prepare(insert)
 	if err != nil {
@@ -31,10 +31,10 @@ func saveacls(tx *sql.Tx, section *common.Section, element string, acls []common
 	for _, acl = range acls {
 		if acl.User != "" {
 			_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, element,
-			acl.User, "user", acl.Mode)
+				acl.User, "user", acl.Mode)
 		} else {
 			_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, element,
-			acl.Group, "user", acl.Mode)
+				acl.Group, "user", acl.Mode)
 		}
 
 		if err != nil {
@@ -107,4 +107,44 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 	}
 
 	saveacls(tx, section, metadata.Name, metadata.Acl)
+}
+
+func Listitems(log *logging.Logger, db *DB, section *common.Section, item string) ([]common.JSONFile, error) {
+	var result []common.JSONFile
+	var resitem common.JSONFile
+	var rows *sql.Rows
+	var element, os, hash, itemtype, link string
+	var err error
+
+	var query = "SELECT element, os, hash, type, link" +
+		" FROM attrs WHERE type = ? AND area = ? AND grace = ? AND dataset = ?"
+
+	result = []common.JSONFile{}
+
+	rows, err = db.Conn.Query(query, item, section.Name, section.Grace, section.Dataset)
+	if err != nil {
+		log.Error("List items error: " + err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&element, &os, &hash, &itemtype, &link)
+		if err != nil {
+			log.Error("List values extraction error: " + err.Error())
+			return nil, err
+		}
+
+		resitem = common.JSONFile{
+			Name: element,
+			Os:   os,
+			Hash: hash,
+			Type: itemtype,
+			Link: link,
+		}
+
+		result = append(result, resitem)
+	}
+
+	return result, nil
 }
