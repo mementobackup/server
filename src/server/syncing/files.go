@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"io"
@@ -77,12 +78,46 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 	}
 }
 
+func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
+	var res []common.JSONFile
+	var db database.DB
+	var err error
+
+	/*
+		if section.Dataset - 1 == 0 {
+			previous := cfg.Section("dataset").Key(section.Grace)
+		} else {
+			previous := section.Dataset -1
+		}
+	*/
+
+	db.Open(log, cfg)
+	defer db.Close()
+
+	res, err = database.Listitems(log, &db, section, "directory")
+	if err != nil {
+		fmt.Println("Error: " + err.Error())
+	}
+
+	fmt.Println(res)
+
+	res, err = database.Listitems(log, &db, section, "file")
+	if err != nil {
+		fmt.Println("Error: " + err.Error())
+	}
+
+	fmt.Println(res)
+}
+
 func Filesync(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	// Execute pre_command
 	exec_command(log, cfg.Section(section.Name), "pre_command")
 
 	// Retrieve file's metadata
 	fs_get_metadata(log, section, cfg)
+
+	// Retrieve file's metadata
+	fs_get_data(log, section, cfg)
 
 	// Execute post_command
 	exec_command(log, cfg.Section(section.Name), "post_command")
