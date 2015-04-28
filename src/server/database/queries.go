@@ -143,8 +143,8 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 			result <- resitem
 
 		}
-		close(result)
 		rows.Close()
+		close(result)
 	}()
 
 	return result
