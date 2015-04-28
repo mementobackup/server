@@ -79,9 +79,8 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 }
 
 func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
-	var res []common.JSONFile
+	var res common.JSONFile
 	var db database.DB
-	var err error
 
 	/*
 		if section.Dataset - 1 == 0 {
@@ -94,19 +93,11 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	db.Open(log, cfg)
 	defer db.Close()
 
-	res, err = database.Listitems(log, &db, section, "directory")
-	if err != nil {
-		fmt.Println("Error: " + err.Error())
+	for _, item := range []string{"directory", "file", "symlink"} {
+		for res = range database.Listitems(log, &db, section, item) {
+			fmt.Println(res)
+		}
 	}
-
-	fmt.Println(res)
-
-	res, err = database.Listitems(log, &db, section, "file")
-	if err != nil {
-		fmt.Println("Error: " + err.Error())
-	}
-
-	fmt.Println(res)
 }
 
 func Filesync(log *logging.Logger, section *common.Section, cfg *ini.File) {

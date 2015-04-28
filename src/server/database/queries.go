@@ -109,8 +109,7 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 	saveacls(tx, section, metadata.Name, metadata.Acl)
 }
 
-func Listitems(log *logging.Logger, db *DB, section *common.Section, item string) ([]common.JSONFile, error) {
-	var result []common.JSONFile
+func Listitems(log *logging.Logger, db *DB, section *common.Section, item string) <-chan common.JSONFile {
 	var resitem common.JSONFile
 	var rows *sql.Rows
 	var element, os, hash, itemtype, link string
@@ -119,32 +118,34 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 	var query = "SELECT element, os, hash, type, link" +
 		" FROM attrs WHERE type = ? AND area = ? AND grace = ? AND dataset = ?"
 
-	result = []common.JSONFile{}
+	result := make(chan common.JSONFile)
 
 	rows, err = db.Conn.Query(query, item, section.Name, section.Grace, section.Dataset)
 	if err != nil {
 		log.Error("List items error: " + err.Error())
-		return nil, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		err = rows.Scan(&element, &os, &hash, &itemtype, &link)
-		if err != nil {
-			log.Error("List values extraction error: " + err.Error())
-			return nil, err
-		}
-
-		resitem = common.JSONFile{
-			Name: element,
-			Os:   os,
-			Hash: hash,
-			Type: itemtype,
-			Link: link,
-		}
-
-		result = append(result, resitem)
 	}
 
-	return result, nil
+	go func() {
+		for rows.Next() {
+			err = rows.Scan(&element, &os, &hash, &itemtype, &link)
+			if err != nil {
+				log.Error("List values extraction error: " + err.Error())
+			}
+
+			resitem = common.JSONFile{
+				Name: element,
+				Os:   os,
+				Hash: hash,
+				Type: itemtype,
+				Link: link,
+			}
+
+			result <- resitem
+
+		}
+		close(result)
+		rows.Close()
+	}()
+
+	return result
 }
