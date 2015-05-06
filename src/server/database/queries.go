@@ -113,18 +113,20 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 	var resitem common.JSONFile
 	var rows *sql.Rows
 	var element, os, hash, itemtype, link string
+	var result chan common.JSONResult
 	var err error
 
 	var query = "SELECT element, os, hash, type, link" +
 		" FROM attrs WHERE type = ? AND area = ? AND grace = ? AND dataset = ?"
 
-	result := make(chan common.JSONFile)
+	result = make(chan common.JSONFile)
 
 	rows, err = db.Conn.Query(query, item, section.Name, section.Grace, section.Dataset)
 	if err != nil {
 		log.Error("List items error: " + err.Error())
 	}
 
+	// Return a generator
 	go func() {
 		for rows.Next() {
 			err = rows.Scan(&element, &os, &hash, &itemtype, &link)
