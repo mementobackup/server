@@ -48,19 +48,6 @@ func saveacls(tx *sql.Tx, section *common.Section, element string, acls []common
 	tx.Commit()
 }
 
-func Getdataset(db *DB, grace string) int {
-	var result int
-
-	var query = "SELECT actual FROM status WHERE grace = ?"
-
-	err := db.Conn.QueryRow(query, grace).Scan(&result)
-	if err != nil {
-		// TODO: add log point
-		return 0
-	}
-	return result
-}
-
 func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata common.JSONFile) {
 	var tx *sql.Tx
 	var stmt *sql.Stmt
@@ -149,6 +136,19 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 		close(result)
 	}()
 
+	return result
+}
+
+func Getdataset(db *DB, grace string) int {
+	var result int
+
+	var query = "SELECT actual FROM status WHERE grace = ?"
+
+	err := db.Conn.QueryRow(query, grace).Scan(&result)
+	if err != nil {
+		// TODO: add log point
+		return 0
+	}
 	return result
 }
 
