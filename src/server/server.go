@@ -11,6 +11,8 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
+	"os"
+	"path/filepath"
 	"server/database"
 	"server/syncing"
 	"strconv"
@@ -77,6 +79,35 @@ func filesync(log *logging.Logger, section *common.Section, cfg *ini.File, c cha
 		<-c
 		wg.Done()
 	}()
+
+	Removefile(log, cfg, section.Name, section.Grace, section.Dataset)
+
 	log.Info("About to execute section " + section.Name)
 	syncing.Filesync(log, section, cfg)
+}
+
+func Removefile(log *logging.Logger, cfg *ini.File, section, grace string, dataset int) {
+	var db database.DB
+
+	log.Debug("About to delete dataset " + strconv.Itoa(dataset) + " for section " + section + " and grace " + grace)
+
+	db.Open(log, cfg)
+	defer db.Close()
+
+	err := database.Deldataset(log, &db, section, grace, dataset)
+	if err != nil {
+		log.Error(err.Error())
+	}
+
+	repository := cfg.Section("general").Key("repository").String() +
+		string(filepath.Separator) +
+		grace +
+		string(filepath.Separator) +
+		strconv.Itoa(dataset)
+
+	if section != "" {
+		repository = repository + string(filepath.Separator) + section
+	}
+
+	os.RemoveAll(repository)
 }
