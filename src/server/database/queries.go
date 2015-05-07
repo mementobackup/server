@@ -10,6 +10,7 @@ package database
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"database/sql"
+	"errors"
 	"github.com/op/go-logging"
 )
 
@@ -149,4 +150,56 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 	}()
 
 	return result
+}
+
+func Deldataset(log *logging.Logger, db *DB, section, grace string, dataset int) error {
+	var tx *sql.Tx
+	var stmt *sql.Stmt
+	var err error
+
+	var tables = []string{"attrs", "acls"}
+	var queries = []string{
+		"DELETE FROM " + tables[0] + " WHERE grace = ? AND dataset = ?",
+		"DELETE FROM " + tables[1] + " WHERE grace = ? AND dataset = ?",
+	}
+
+	var geterror = func(debugmessage, message string) error {
+		tx.Rollback()
+
+		log.Debug(debugmessage)
+		return errors.New(message)
+	}
+
+	if section != "" {
+		queries[0] = queries[0] + " AND area = ?"
+		queries[1] = queries[1] + " AND area = ?"
+	}
+
+	tx, err = db.Conn.Begin()
+	if err != nil {
+		return geterror("Transaction error: "+err.Error(), "Problems with opening transaction")
+	}
+
+	for item, query := range queries {
+		log.Debug("Delete table " + tables[item])
+
+		stmt, err = tx.Prepare(query)
+		if err != nil {
+			return geterror("Error in prepare: "+err.Error(), "Problems when preparing query")
+		}
+
+		if section != "" {
+			_, err = stmt.Exec(grace, dataset, section)
+		} else {
+			_, err = stmt.Exec(grace, dataset)
+		}
+
+		if err != nil {
+			return geterror("Exec error: "+err.Error(), "Delete of dataset "+tables[item]+" wasn't possible")
+		}
+		stmt.Close()
+	}
+	tx.Commit()
+
+	return nil
 }
