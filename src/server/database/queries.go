@@ -14,7 +14,7 @@ import (
 	"github.com/op/go-logging"
 )
 
-func saveacls(tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) {
+func saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) {
 	var acl common.JSONFileAcl
 	var stmt *sql.Stmt
 	var err error
@@ -25,7 +25,8 @@ func saveacls(tx *sql.Tx, section *common.Section, element string, acls []common
 
 	stmt, err = tx.Prepare(insert)
 	if err != nil {
-		// TODO: log error
+		log.Error("Cannot save ACLs for element " + section.Name)
+		log.Debug("Failed prepare: " + err.Error())
 		return
 	}
 
@@ -37,10 +38,12 @@ func saveacls(tx *sql.Tx, section *common.Section, element string, acls []common
 			_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, element,
 				acl.Group, "user", acl.Mode)
 		}
-
 		if err != nil {
-			// TODO: log error
+			log.Error("Cannot save ACLs for element " + section.Name)
+			log.Debug("Failed execute: " + err.Error())
 			tx.Rollback()
+
+			break
 		}
 	}
 
@@ -94,7 +97,7 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 		return
 	}
 
-	saveacls(tx, section, metadata.Name, metadata.Acl)
+	saveacls(log, tx, section, metadata.Name, metadata.Acl)
 }
 
 func Listitems(log *logging.Logger, db *DB, section *common.Section, item string) <-chan common.JSONFile {
@@ -139,14 +142,14 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 	return result
 }
 
-func Getdataset(db *DB, grace string) int {
+func Getdataset(log *logging.Logger, db *DB, grace string) int {
 	var result int
 
 	var query = "SELECT actual FROM status WHERE grace = ?"
 
 	err := db.Conn.QueryRow(query, grace).Scan(&result)
 	if err != nil {
-		// TODO: add log point
+		log.Debug("Error when getting dataset: " + err.Error())
 		return 0
 	}
 	return result

@@ -45,7 +45,7 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	sections = cfg.Sections()
 
 	maxdatasets, _ = cfg.Section("dataset").Key(grace).Int()
-	dataset = database.Getdataset(&db, grace)
+	dataset = database.Getdataset(log, &db, grace)
 
 	if nextds := dataset + 1; nextds > maxdatasets {
 		dataset = 1
@@ -110,4 +110,6 @@ func Removefile(log *logging.Logger, cfg *ini.File, section, grace string, datas
 	}
 
 	os.RemoveAll(repository)
+
+	log.Debug("Dataset deleted")
 }
