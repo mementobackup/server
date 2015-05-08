@@ -83,6 +83,17 @@ func main() {
 	opts := s.Parse(os.Args[1:])
 	grace := ""
 
+	// Print version and exit
+	if opts.GetBool("version") {
+		fmt.Println("Memento server " + VERSION)
+		os.Exit(0)
+	}
+
+	// Print help and exit
+	if opts.GetBool("help") {
+		s.PrintUsageAndExit("Memento server " + VERSION)
+	}
+
 	// Read Ini file (mandatory)
 	if !opts.GetBool("cfg") {
 		// If configuration file is not passed, print help and exit
@@ -101,17 +112,6 @@ func main() {
 	} else {
 		// If grace is not selected, print help and exit
 		s.PrintUsageAndExit("No grace selected")
-	}
-
-	// Print version and exit
-	if opts.GetBool("version") {
-		fmt.Println("Memento server " + VERSION)
-		os.Exit(0)
-	}
-
-	// Print help and exit
-	if opts.GetBool("help") {
-		s.PrintUsageAndExit("Memento server " + VERSION)
 	}
 
 	cfg, err := ini.Load([]byte{}, opts.Get("cfg"))
