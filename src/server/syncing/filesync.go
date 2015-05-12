@@ -78,16 +78,15 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 }
 
 func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
+	var previous int
 	var res common.JSONFile
 	var db database.DB
 
-	/*
-		if section.Dataset - 1 == 0 {
-			previous := cfg.Section("dataset").Key(section.Grace)
-		} else {
-			previous := section.Dataset -1
-		}
-	*/
+	if section.Dataset-1 == 0 {
+		previous = cfg.Section("dataset").Key(section.Grace).MustInt()
+	} else {
+		previous = section.Dataset - 1
+	}
 
 	db.Open(log, cfg)
 	defer db.Close()
@@ -95,11 +94,14 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	for _, item := range []string{"directory", "file", "symlink"} {
 		for res = range database.Listitems(log, &db, section, item) {
 			switch item {
-				case "directory":
-					fs_save_data(log, cfg, section, res, false)
-				case "file":
-				case "symlink":
-					fs_save_data(log, cfg, section, res, false)
+			case "directory":
+				fs_save_data(log, cfg, section, res, false)
+			case "symlink":
+				fs_save_data(log, cfg, section, res, false)
+			case "file":
+				if database.Itemexist(log, &db, &res, section, previous) {
+
+				}
 			}
 		}
 	}
