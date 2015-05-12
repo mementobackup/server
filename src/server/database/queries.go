@@ -12,6 +12,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/op/go-logging"
+	"strconv"
 )
 
 func saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) {
@@ -140,6 +141,34 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 	}()
 
 	return result
+}
+
+func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *common.Section, previous int) bool {
+	var dataset, result int
+
+	if previous > 0 {
+		dataset = previous
+	} else {
+		dataset = section.Dataset
+	}
+
+	var query = "SELECT count(element) FROM attrs" +
+		" WHERE element = ? AND hash = ?" +
+		" AND area = ? AND grace = ? AND dataset = ?"
+
+	log.Debug("Searching item " + item.Name + " exists in dataset " + strconv.Itoa(dataset))
+	err := db.Conn.QueryRow(query,
+		item.Name, item.Hash, section.Name, section.Grace, dataset).Scan(&result)
+	if err != nil {
+		log.Debug("Error when finding item: " + err.Error())
+		return false
+	}
+
+	if result > 0 {
+		return true
+	} else {
+		return false
+	}
 }
 
 func Getdataset(log *logging.Logger, db *DB, grace string) int {
