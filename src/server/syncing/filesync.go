@@ -11,7 +11,6 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"io"
@@ -95,7 +94,10 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 
 	for _, item := range []string{"directory", "file", "symlink"} {
 		for res = range database.Listitems(log, &db, section, item) {
-			fmt.Println(res)
+			if item == "directory" {
+				fs_save_data(log, cfg, section, res, false)
+			} else {
+			}
 		}
 	}
 }
