@@ -56,6 +56,9 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 	case "directory":
 		os.MkdirAll(dest, 0755)
 	case "symlink":
+		if err := os.Symlink(data.Link, dest); err != nil {
+			log.Debug("Error when creating symlink for file %s: %s", data.Name, err.Error())
+		}
 	case "file":
 	}
 }

@@ -99,6 +99,7 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 					fs_save_data(log, cfg, section, res, false)
 				case "file":
 				case "symlink":
+					fs_save_data(log, cfg, section, res, false)
 			}
 		}
 	}
