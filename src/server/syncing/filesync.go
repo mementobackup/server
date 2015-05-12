@@ -94,9 +94,11 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 
 	for _, item := range []string{"directory", "file", "symlink"} {
 		for res = range database.Listitems(log, &db, section, item) {
-			if item == "directory" {
-				fs_save_data(log, cfg, section, res, false)
-			} else {
+			switch item {
+				case "directory":
+					fs_save_data(log, cfg, section, res, false)
+				case "file":
+				case "symlink":
 			}
 		}
 	}
