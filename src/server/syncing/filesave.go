@@ -42,6 +42,7 @@ func fs_compute_dest(path string, cfg *ini.File, section *common.Section, previo
 
 func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, data common.JSONFile, previous bool) {
 	var item string
+	var err error
 
 	if data.Os == "windows" {
 		item = strings.Replace(data.Name, "\\", "/", -1)
@@ -60,5 +61,21 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 			log.Debug("Error when creating symlink for file %s: %s", data.Name, err.Error())
 		}
 	case "file":
+		if previous {
+			source := fs_compute_dest(data.Name, cfg, section, true) + string(filepath.Separator) + item
+
+			if section.Compressed {
+				err = os.Link(source + ".compressed", dest + ".compressed")
+			} else {
+				err = os.Link(source, dest)
+			}
+
+			if err != nil {
+				log.Error("Error when link file %s", data.Name)
+				log.Debug("Trace: " + err.Error() )
+			}
+		} else {
+			// TODO: write code for downloading and saving file
+		}
 	}
 }
