@@ -46,6 +46,9 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 
 	cmd.Send(conn)
 
+	db.Open(log, cfg)
+	defer db.Close()
+
 	buff = bufio.NewReader(conn)
 	for {
 		res = common.JSONResult{}
@@ -69,9 +72,6 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 			log.Debug("error: " + err.Error())
 			return
 		}
-
-		db.Open(log, cfg)
-		defer db.Close()
 
 		database.Saveattrs(log, &db, section, res.Data)
 	}
