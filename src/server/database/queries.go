@@ -156,7 +156,7 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 		" WHERE element = ? AND hash = ?" +
 		" AND area = ? AND grace = ? AND dataset = ?"
 
-	log.Debug("Searching item " + item.Name + " exists in dataset " + strconv.Itoa(dataset))
+	log.Debug("Searching if item " + item.Name + " exists in dataset " + strconv.Itoa(dataset))
 	err := db.Conn.QueryRow(query,
 		item.Name, item.Hash, section.Name, section.Grace, dataset).Scan(&result)
 	if err != nil {
