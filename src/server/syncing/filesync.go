@@ -102,7 +102,7 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 				if database.Itemexist(log, &db, &res, section, previous) {
 					fs_save_data(log, cfg, section, res, true)
 				} else {
-					// TODO: write code for downloading and saving file
+					fs_save_data(log, cfg, section, res, false)
 				}
 			}
 		}

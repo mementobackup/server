@@ -15,6 +15,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"net"
+	"server/network"
 )
 
 func fs_compute_dest(path string, cfg *ini.File, section *common.Section, previous bool) string {
@@ -42,6 +44,8 @@ func fs_compute_dest(path string, cfg *ini.File, section *common.Section, previo
 
 func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, data common.JSONFile, previous bool) {
 	var item string
+	var cmd common.JSONMessage
+	var conn net.Conn
 	var err error
 
 	if data.Os == "windows" {
@@ -76,7 +80,24 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 				log.Debug("Trace: " + err.Error() )
 			}
 		} else {
-			// TODO: write code for downloading and saving file
+			cmd.Context = "file"
+			cmd.Command.Name = "get"
+			cmd.Command.Filename = data.Name
+
+			conn, err = network.Getsocket(cfg.Section(section.Name))
+			if err != nil {
+				log.Error("Error when opening connection with section " + section.Name)
+				log.Debug("Trace: " + err.Error())
+				return
+			}
+			defer conn.Close()
+
+			cmd.Send(conn)
+
+			if err = common.Receivefile(dest, conn); err != nil {
+				log.Error("Error when receiving file " + data.Name)
+				log.Debug("Trace: " + err.Error())
+			}
 		}
 	}
 }
