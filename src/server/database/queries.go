@@ -15,7 +15,7 @@ import (
 	"strconv"
 )
 
-func saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) {
+func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) error {
 	var acl common.JSONFileAcl
 	var stmt *sql.Stmt
 	var err error
@@ -28,7 +28,7 @@ func saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 	if err != nil {
 		log.Error("Cannot save ACLs for element " + section.Name)
 		log.Debug("Failed prepare: " + err.Error())
-		return
+		return err
 	}
 
 	for _, acl = range acls {
@@ -42,18 +42,15 @@ func saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 		if err != nil {
 			log.Error("Cannot save ACLs for element " + section.Name)
 			log.Debug("Failed execute: " + err.Error())
-			tx.Rollback()
-
-			break
+			return err
 		}
 	}
 
 	stmt.Close()
-	tx.Commit()
+	return nil
 }
 
-func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata common.JSONFile) {
-	var tx *sql.Tx
+func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadata common.JSONFile) error {
 	var stmt *sql.Stmt
 	var compressed int
 	var err error
@@ -72,12 +69,6 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 		compressed = 0
 	}
 
-	tx, err = db.Conn.Begin()
-	if err != nil {
-		log.Error("Transaction error: " + err.Error())
-		return
-	}
-
 	stmt, err = tx.Prepare(insert)
 
 	_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, metadata.Name,
@@ -85,20 +76,11 @@ func Saveattrs(log *logging.Logger, db *DB, section *common.Section, metadata co
 		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, compressed)
 
 	if err != nil {
-		log.Error("Exec error: " + err.Error())
-		tx.Rollback()
+		return err
 	}
 
 	stmt.Close()
-	tx.Commit()
-
-	tx, err = db.Conn.Begin()
-	if err != nil {
-		log.Error("Transaction error: " + err.Error())
-		return
-	}
-
-	saveacls(log, tx, section, metadata.Name, metadata.Acl)
+	return nil
 }
 
 func Listitems(log *logging.Logger, db *DB, section *common.Section, item string) <-chan common.JSONFile {

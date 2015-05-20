@@ -10,6 +10,7 @@ package syncing
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
@@ -26,6 +27,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 	var db database.DB
 	var buff *bufio.Reader
 	var res common.JSONResult
+	var tx *sql.Tx
 	var data []byte
 	var err error
 
@@ -48,6 +50,14 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 
 	db.Open(log, cfg)
 	defer db.Close()
+
+	tx, err = db.Conn.Begin()
+	if err != nil {
+		log.Error("Transaction error for section " + section.Name)
+		log.Debug("Trace: " + err.Error())
+
+		return
+	}
 
 	buff = bufio.NewReader(conn)
 	for {
@@ -73,8 +83,24 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 			return
 		}
 
-		database.Saveattrs(log, &db, section, res.Data)
+		if err = database.Saveattrs(log, tx, section, res.Data); err != nil {
+			log.Error("Failed saving database item: " + res.Data.Name)
+			log.Debug("Trace: " + err.Error())
+			tx.Rollback()
+
+			return
+		}
+
+		if err = database.Saveacls(log, tx, section, res.Data.Name, res.Data.Acl); err != nil {
+			log.Error("Failed saving ACLs into database for item: " + res.Data.Name)
+			log.Debug("Trace: " + err.Error())
+			tx.Rollback()
+
+			return
+		}
 	}
+
+	tx.Commit()
 }
 
 func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
