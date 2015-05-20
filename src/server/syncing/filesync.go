@@ -67,7 +67,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 
 		if err != nil {
 			if err == io.EOF {
-				log.Debug("All data in connection are readed, exit")
+				log.Debug("All files's metadata are saved")
 				break
 			}
 
