@@ -166,6 +166,28 @@ func Getdataset(log *logging.Logger, db *DB, grace string) int {
 	return result
 }
 
+func Setdataset(log *logging.Logger, db *DB, actual int, grace string) {
+	var stmt *sql.Stmt
+	var err error
+
+	var query = "UPDATE status SET actual = ?, last_run = CURRENT_TIMESTAMP WHERE grace = ?"
+
+	stmt, err = db.Conn.Prepare(query)
+	if err != nil {
+		log.Debug("Error when setting actual dataset: " + err.Error())
+		return
+	}
+
+	_, err = stmt.Exec(actual, grace)
+	if err != nil {
+		log.Debug("Error when setting actual dataset: " + err.Error())
+	}
+
+	log.Debug("Dataset updated: " + strconv.Itoa(actual))
+
+	stmt.Close()
+}
+
 func Deldataset(log *logging.Logger, db *DB, section, grace string, dataset int) error {
 	var tx *sql.Tx
 	var stmt *sql.Stmt

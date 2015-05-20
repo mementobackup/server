@@ -39,13 +39,13 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	var dataset, maxdatasets int
 	var sections []*ini.Section
 
-	db.Open(log, cfg)
-	defer db.Close()
-
 	sections = cfg.Sections()
 
 	maxdatasets, _ = cfg.Section("dataset").Key(grace).Int()
+
+	db.Open(log, cfg)
 	dataset = database.Getdataset(log, &db, grace)
+	db.Close()
 
 	if nextds := dataset + 1; nextds > maxdatasets {
 		dataset = 1
@@ -72,6 +72,10 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	}
 	wg.Wait() // Wait for all the children to die
 	close(c)
+
+	db.Open(log, cfg)
+	database.Setdataset(log, &db, dataset, grace)
+	db.Close()
 }
 
 func filesync(log *logging.Logger, section *common.Section, cfg *ini.File, c chan bool, wg *sync.WaitGroup) {
