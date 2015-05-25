@@ -11,12 +11,12 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
+	"net"
 	"os"
 	"path/filepath"
+	"server/network"
 	"strconv"
 	"strings"
-	"net"
-	"server/network"
 )
 
 func fs_compute_dest(path string, cfg *ini.File, section *common.Section, previous bool) string {
@@ -46,6 +46,7 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 	var item string
 	var cmd common.JSONMessage
 	var conn net.Conn
+	var source, dest string
 	var err error
 
 	if data.Os == "windows" {
@@ -54,7 +55,15 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 		item = data.Name
 	}
 
-	dest := fs_compute_dest(data.Name, cfg, section, false) + string(filepath.Separator) + item
+	// TODO: Implement compression function
+	//if section.Compressed {
+	//	source = fs_compute_dest(data.Name, cfg, section, true) + string(filepath.Separator) + item + ".compressed"
+	//	dest = fs_compute_dest(data.Name, cfg, section, false) + string(filepath.Separator) + item + ".compressed"
+	//} else {
+	source = fs_compute_dest(data.Name, cfg, section, true) + string(filepath.Separator) + item
+	dest = fs_compute_dest(data.Name, cfg, section, false) + string(filepath.Separator) + item
+	//}
+
 	log.Debug("Save item: " + dest)
 
 	switch data.Type {
@@ -67,17 +76,11 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 		}
 	case "file":
 		if previous {
-			source := fs_compute_dest(data.Name, cfg, section, true) + string(filepath.Separator) + item
-
-			if section.Compressed {
-				err = os.Link(source + ".compressed", dest + ".compressed")
-			} else {
-				err = os.Link(source, dest)
-			}
+			err = os.Link(source, dest)
 
 			if err != nil {
 				log.Error("Error when link file %s", data.Name)
-				log.Debug("Trace: " + err.Error() )
+				log.Debug("Trace: " + err.Error())
 			}
 		} else {
 			cmd.Context = "file"
@@ -97,6 +100,10 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 			if err = common.Receivefile(dest, conn); err != nil {
 				log.Error("Error when receiving file " + data.Name)
 				log.Debug("Trace: " + err.Error())
+			} else {
+				if section.Compressed {
+					// TODO: Implement compression function
+				}
 			}
 		}
 	}
