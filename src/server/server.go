@@ -17,6 +17,7 @@ import (
 	"server/syncing"
 	"strconv"
 	"sync"
+	"database/sql"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
@@ -33,6 +34,7 @@ func contains(s []string, e string) bool {
 func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	const POOL = 5
 	var db database.DB
+	var tx *sql.Tx
 	var c = make(chan bool, POOL)
 	var wg = new(sync.WaitGroup)
 
@@ -44,8 +46,11 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	maxdatasets, _ = cfg.Section("dataset").Key(grace).Int()
 
 	db.Open(log, cfg)
-	dataset = database.Getdataset(log, &db, grace)
-	db.Close()
+	defer db.Close()
+
+	tx, _ = db.Conn.Begin()
+	dataset = database.Getdataset(log, tx, grace)
+	tx.Commit();
 
 	if nextds := dataset + 1; nextds > maxdatasets {
 		dataset = 1
@@ -73,9 +78,9 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	wg.Wait() // Wait for all the children to die
 	close(c)
 
-	db.Open(log, cfg)
-	database.Setdataset(log, &db, dataset, grace)
-	db.Close()
+	tx, _ = db.Conn.Begin()
+	database.Setdataset(log, tx, dataset, grace)
+	tx.Commit()
 }
 
 func filesync(log *logging.Logger, section *common.Section, cfg *ini.File, c chan bool, wg *sync.WaitGroup) {

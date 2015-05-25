@@ -153,12 +153,12 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 	}
 }
 
-func Getdataset(log *logging.Logger, db *DB, grace string) int {
+func Getdataset(log *logging.Logger, tx *sql.Tx, grace string) int {
 	var result int
 
 	var query = "SELECT actual FROM status WHERE grace = ?"
 
-	err := db.Conn.QueryRow(query, grace).Scan(&result)
+	err := tx.QueryRow(query, grace).Scan(&result)
 	if err != nil {
 		log.Debug("Error when getting dataset: " + err.Error())
 		return 0
@@ -166,13 +166,13 @@ func Getdataset(log *logging.Logger, db *DB, grace string) int {
 	return result
 }
 
-func Setdataset(log *logging.Logger, db *DB, actual int, grace string) {
+func Setdataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) {
 	var stmt *sql.Stmt
 	var err error
 
 	var query = "UPDATE status SET actual = ?, last_run = CURRENT_TIMESTAMP WHERE grace = ?"
 
-	stmt, err = db.Conn.Prepare(query)
+	stmt, err = tx.Prepare(query)
 	if err != nil {
 		log.Debug("Error when setting actual dataset: " + err.Error())
 		return
