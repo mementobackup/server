@@ -55,14 +55,8 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 		item = data.Name
 	}
 
-	// TODO: Implement compression function
-	//if section.Compressed {
-	//	source = fs_compute_dest(data.Name, cfg, section, true) + string(filepath.Separator) + item + ".compressed"
-	//	dest = fs_compute_dest(data.Name, cfg, section, false) + string(filepath.Separator) + item + ".compressed"
-	//} else {
 	source = fs_compute_dest(data.Name, cfg, section, true) + string(filepath.Separator) + item
 	dest = fs_compute_dest(data.Name, cfg, section, false) + string(filepath.Separator) + item
-	//}
 
 	log.Debug("Save item: " + dest)
 
@@ -76,9 +70,7 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 		}
 	case "file":
 		if previous {
-			err = os.Link(source, dest)
-
-			if err != nil {
+			if err = os.Link(source, dest); err != nil {
 				log.Error("Error when link file %s", data.Name)
 				log.Debug("Trace: " + err.Error())
 			}
@@ -97,13 +89,9 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 
 			cmd.Send(conn)
 
-			if err = common.Receivefile(dest, conn); err != nil {
+			if err = common.Receivefile(dest, conn, section.Compressed); err != nil {
 				log.Error("Error when receiving file " + data.Name)
 				log.Debug("Trace: " + err.Error())
-			} else {
-				if section.Compressed {
-					// TODO: Implement compression function
-				}
 			}
 		}
 	}
