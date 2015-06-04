@@ -70,6 +70,11 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 		}
 	case "file":
 		if previous {
+			if section.Compressed {
+				source = source + ".compressed"
+				dest = dest + ".compressed"
+			}
+
 			if err = os.Link(source, dest); err != nil {
 				log.Error("Error when link file %s", data.Name)
 				log.Debug("Trace: " + err.Error())
