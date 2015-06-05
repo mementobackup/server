@@ -9,15 +9,14 @@ package server
 
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
+	"database/sql"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
-	"os"
-	"path/filepath"
 	"server/database"
+	"server/dataset"
 	"server/syncing"
 	"strconv"
 	"sync"
-	"database/sql"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
@@ -50,7 +49,7 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 
 	tx, _ = db.Conn.Begin()
 	dataset = database.Getdataset(log, tx, grace)
-	tx.Commit();
+	tx.Commit()
 
 	if nextds := dataset + 1; nextds > maxdatasets {
 		dataset = 1
@@ -89,36 +88,8 @@ func filesync(log *logging.Logger, section *common.Section, cfg *ini.File, c cha
 		wg.Done()
 	}()
 
-	Removedataset(log, cfg, section.Name, section.Grace, section.Dataset)
+	dataset.Deldataset(log, cfg, section.Name, section.Grace, section.Dataset)
 
 	log.Info("About to execute section " + section.Name)
 	syncing.Filesync(log, section, cfg)
-}
-
-func Removedataset(log *logging.Logger, cfg *ini.File, section, grace string, dataset int) {
-	var db database.DB
-
-	log.Debug("About to delete dataset " + strconv.Itoa(dataset) + " for section " + section + " and grace " + grace)
-
-	db.Open(log, cfg)
-	defer db.Close()
-
-	err := database.Deldataset(log, &db, section, grace, dataset)
-	if err != nil {
-		log.Error(err.Error())
-	}
-
-	repository := cfg.Section("general").Key("repository").String() +
-		string(filepath.Separator) +
-		grace +
-		string(filepath.Separator) +
-		strconv.Itoa(dataset)
-
-	if section != "" {
-		repository = repository + string(filepath.Separator) + section
-	}
-
-	os.RemoveAll(repository)
-
-	log.Debug("Dataset deleted")
 }
