@@ -89,13 +89,13 @@ func filesync(log *logging.Logger, section *common.Section, cfg *ini.File, c cha
 		wg.Done()
 	}()
 
-	Removefile(log, cfg, section.Name, section.Grace, section.Dataset)
+	Removedataset(log, cfg, section.Name, section.Grace, section.Dataset)
 
 	log.Info("About to execute section " + section.Name)
 	syncing.Filesync(log, section, cfg)
 }
 
-func Removefile(log *logging.Logger, cfg *ini.File, section, grace string, dataset int) {
+func Removedataset(log *logging.Logger, cfg *ini.File, section, grace string, dataset int) {
 	var db database.DB
 
 	log.Debug("About to delete dataset " + strconv.Itoa(dataset) + " for section " + section + " and grace " + grace)
