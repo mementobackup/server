@@ -46,7 +46,7 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 	var item string
 	var cmd common.JSONMessage
 	var conn net.Conn
-	var source, dest string
+	var source, dest, hash string
 	var err error
 
 	if data.Os == "windows" {
@@ -94,9 +94,16 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 
 			cmd.Send(conn)
 
-			if err = common.Receivefile(dest, conn, section.Compressed); err != nil {
+			if hash, err = common.Receivefile(dest, conn); err != nil {
 				log.Error("Error when receiving file " + data.Name)
 				log.Debug("Trace: " + err.Error())
+			}
+
+			// TODO: check file's hash
+			if hash == "" {
+				log.Error("Hash for file " + dest + " mismatch")
+			} else {
+				log.Debug("Hash for file " + dest + " is " + hash)
 			}
 		}
 	}
