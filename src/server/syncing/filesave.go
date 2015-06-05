@@ -17,6 +17,7 @@ import (
 	"server/network"
 	"strconv"
 	"strings"
+	"server/dataset"
 )
 
 func fs_compute_dest(path string, cfg *ini.File, section *common.Section, previous bool) string {
@@ -101,8 +102,13 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 			// TODO: check file's hash
 			if hash == "" {
 				log.Error("Hash for file " + dest + " mismatch")
+				// TODO: remove file if hash mismatch
 			} else {
 				log.Debug("Hash for file " + dest + " is " + hash)
+
+				if section.Compressed {
+					dataset.Compressfile(log, dest)
+				}
 			}
 		}
 	}
