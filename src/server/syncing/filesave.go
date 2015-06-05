@@ -43,10 +43,9 @@ func fs_compute_dest(path string, cfg *ini.File, section *common.Section, previo
 }
 
 func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, data common.JSONFile, previous bool) {
-	var item string
+	var item, source, dest, hash string
 	var cmd common.JSONMessage
 	var conn net.Conn
-	var source, dest, hash string
 	var err error
 
 	if data.Os == "windows" {
