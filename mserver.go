@@ -53,7 +53,7 @@ func setlog(level logging.Level, filename string) *logging.Logger {
 	var backend *logging.LogBackend
 	var log = logging.MustGetLogger("Memento Server")
 	var format = logging.MustStringFormatter(
-		"%{time:2006-01-02 15:04:05.000} %{level} Memento - %{message}",
+		"%{time:2006-01-02 15:04:05.000} %{level} - Memento - %{message}",
 	)
 
 	if filename == "" {
@@ -127,7 +127,7 @@ func main() {
 	log := setlog(loglevel, cfg.Section("general").Key("log_file").String())
 
 	log.Info("Started version " + VERSION)
-	log.Debug("Grace selected: " + grace)
+	log.Debug("%{longfunc}:%{id:03x} - Grace selected: " + grace)
 
 	server.Sync(log, cfg, grace)
 
