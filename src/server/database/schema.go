@@ -16,14 +16,13 @@ import (
 func (db *DB) check(log *logging.Logger) error {
 	var counted int
 
-	query := "SELECT COUNT(rdb$relation_name) " +
-		"FROM rdb$relations WHERE " +
-		"rdb$relation_name NOT LIKE 'RDB$%' " +
-		"AND rdb$relation_name NOT LIKE 'MON$%'"
+	query := "SELECT Count(*) FROM information_schema.tables " +
+	"WHERE table_schema = 'public' " +
+	"AND table_name in ('status', 'attrs', 'acls')"
 
 	err := db.Conn.QueryRow(query).Scan(&counted)
 	if err != nil {
-		log.Fatal("Error in check database structure: " + err.Error())
+		log.Fatal("Schema 1: Error in check database structure: " + err.Error())
 	}
 
 	if counted > 0 {
@@ -35,7 +34,7 @@ func (db *DB) check(log *logging.Logger) error {
 
 func (db *DB) create(log *logging.Logger) {
 	var tx *sql.Tx
-	var domains = []string{"CREATE DOMAIN BOOLEAN AS SMALLINT CHECK (value is null or value in (0, 1))"}
+
 	var indexes = []string{
 		"CREATE INDEX idx_attrs_1 ON attrs(area, grace, dataset)",
 		"CREATE INDEX idx_attrs_2 ON attrs(area, grace, dataset, hash)",
@@ -45,32 +44,32 @@ func (db *DB) create(log *logging.Logger) {
 
 	var tables = []string{
 		"CREATE TABLE status ( " +
-			"grace VARCHAR(5) CHARACTER SET UTF8, " +
-			" actual INTEGER, " +
-			" last_run TIMESTAMP)",
+		"grace VARCHAR(5), " +
+		" actual INTEGER, " +
+		" last_run TIMESTAMP)",
 		"CREATE TABLE attrs ( " +
-			"area VARCHAR(30) CHARACTER SET UTF8, " +
-			"grace VARCHAR(5) CHARACTER SET UTF8, " +
-			"dataset INTEGER, " +
-			"element VARCHAR(1024) CHARACTER SET UTF8, " +
-			"os VARCHAR(32) CHARACTER SET UTF8, " +
-			"username VARCHAR(50) CHARACTER SET UTF8, " +
-			"groupname VARCHAR(50) CHARACTER SET UTF8, " +
-			"type VARCHAR(9) CHARACTER SET UTF8, " +
-			"link VARCHAR(1024) CHARACTER SET UTF8, " +
-			"hash VARCHAR(32) CHARACTER SET UTF8, " +
-			"perms VARCHAR(32) CHARACTER SET UTF8, " +
-			"mtime BIGINT, " +
-			"ctime BIGINT, " +
-			"compressed BOOLEAN)",
+		"area VARCHAR(30), " +
+		"grace VARCHAR(5), " +
+		"dataset INTEGER, " +
+		"element VARCHAR(1024), " +
+		"os VARCHAR(32), " +
+		"username VARCHAR(50), " +
+		"groupname VARCHAR(50), " +
+		"type VARCHAR(9), " +
+		"link VARCHAR(1024), " +
+		"hash VARCHAR(32), " +
+		"perms VARCHAR(32), " +
+		"mtime BIGINT, " +
+		"ctime BIGINT, " +
+		"compressed BOOLEAN)",
 		"CREATE TABLE acls ( " +
-			"area VARCHAR(30) CHARACTER SET UTF8, " +
-			"grace VARCHAR(5) CHARACTER SET UTF8, " +
-			"dataset INTEGER, " +
-			"element VARCHAR(1024) CHARACTER SET UTF8, " +
-			"name VARCHAR(50) CHARACTER SET UTF8, " +
-			"type VARCHAR(5) CHARACTER SET UTF8, " +
-			"perms VARCHAR(3) CHARACTER SET UTF8)",
+		"area VARCHAR(30), " +
+		"grace VARCHAR(5), " +
+		"dataset INTEGER, " +
+		"element VARCHAR(1024), " +
+		"name VARCHAR(50), " +
+		"type VARCHAR(5), " +
+		"perms VARCHAR(3))",
 	}
 
 	var data = []string{
@@ -79,17 +78,6 @@ func (db *DB) create(log *logging.Logger) {
 		"INSERT INTO status VALUES('week', 0, CURRENT_TIMESTAMP)",
 		"INSERT INTO status VALUES('month', 0, CURRENT_TIMESTAMP)",
 	}
-
-	tx, _ = db.Conn.Begin()
-	for _, query := range domains {
-		_, err := tx.Exec(query)
-		if err != nil {
-			tx.Rollback()
-			log.Fatal(err)
-			break
-		}
-	}
-	tx.Commit()
 
 	tx, _ = db.Conn.Begin()
 	for _, query := range tables {

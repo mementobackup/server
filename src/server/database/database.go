@@ -10,8 +10,9 @@ package database
 import (
 	"database/sql"
 	"github.com/go-ini/ini"
-	_ "github.com/nakagami/firebirdsql"
+	_ "github.com/lib/pq"
 	"github.com/op/go-logging"
+	"strings"
 )
 
 type DB struct {
@@ -35,12 +36,20 @@ func (db *DB) Open(log *logging.Logger, cfg *ini.File) {
 	var err error
 
 	db.populate(cfg)
-	db.Conn, err = sql.Open("firebirdsql", db.User+":"+db.Password+"@"+db.Host+":"+db.Port+"/"+db.Database)
+
+	dsn := strings.Join([]string{
+		"user=" + db.User,
+		"password=" + db.Password,
+		"host=" + db.Host,
+		"port=" + db.Port,
+		"dbname=" + db.Database,
+	}, " ")
+
+	db.Conn, err = sql.Open("postgres", dsn)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Debug("Connection with database instantied")
 
 	err = db.Conn.Ping()
 	if err != nil {
