@@ -22,7 +22,7 @@ func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 
 	var insert = "INSERT INTO acls" +
 		"(area, grace, dataset, element, name, type, perms)" +
-		"VALUES(?, ?, ?, ?, ?, ?, ?)"
+		" VALUES($1, $2, $3, $4, $5, $6, $7)"
 
 	stmt, err = tx.Prepare(insert)
 	if err != nil {
@@ -52,28 +52,18 @@ func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 
 func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadata common.JSONFile) error {
 	var stmt *sql.Stmt
-	var compressed int
 	var err error
 
 	var insert = "INSERT INTO attrs" +
 		"(area, grace, dataset, element, os, username, groupname, type," +
 		" link, mtime, ctime, hash, perms, compressed)" +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-
-	// Because Firebird doesn't support BOOLEAN values, and the driver
-	// doesn't convert automatically to int, I need to convert boolean
-	// value to int value
-	if section.Compressed {
-		compressed = 1
-	} else {
-		compressed = 0
-	}
+		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)"
 
 	stmt, err = tx.Prepare(insert)
 
 	_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, metadata.Name,
 		metadata.Os, metadata.User, metadata.Group, metadata.Type, metadata.Link,
-		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, compressed)
+		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, section.Compressed)
 
 	if err != nil {
 		return err
@@ -90,7 +80,7 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 	var err error
 
 	var query = "SELECT element, os, hash, type, link" +
-		" FROM attrs WHERE type = ? AND area = ? AND grace = ? AND dataset = ?"
+		" FROM attrs WHERE type = $1 AND area = $2 AND grace = $3 AND dataset = $4"
 
 	result := make(chan common.JSONFile)
 
@@ -135,8 +125,8 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 	}
 
 	var query = "SELECT count(element) FROM attrs" +
-		" WHERE element = ? AND hash = ?" +
-		" AND area = ? AND grace = ? AND dataset = ?"
+		" WHERE element = $1 AND hash = $2" +
+		" AND area = $3 AND grace = $4 AND dataset = $5"
 
 	log.Debug("Searching if item " + item.Name + " exists in dataset " + strconv.Itoa(dataset))
 	err := db.Conn.QueryRow(query,
@@ -156,7 +146,7 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 func Getdataset(log *logging.Logger, tx *sql.Tx, grace string) int {
 	var result int
 
-	var query = "SELECT actual FROM status WHERE grace = ?"
+	var query = "SELECT actual FROM status WHERE grace = $1"
 
 	err := tx.QueryRow(query, grace).Scan(&result)
 	if err != nil {
@@ -170,7 +160,7 @@ func Setdataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) {
 	var stmt *sql.Stmt
 	var err error
 
-	var query = "UPDATE status SET actual = ?, last_run = CURRENT_TIMESTAMP WHERE grace = ?"
+	var query = "UPDATE status SET actual = $1, last_run = CURRENT_TIMESTAMP WHERE grace = $2"
 
 	stmt, err = tx.Prepare(query)
 	if err != nil {
@@ -195,8 +185,8 @@ func Deldataset(log *logging.Logger, db *DB, section, grace string, dataset int)
 
 	var tables = []string{"attrs", "acls"}
 	var queries = []string{
-		"DELETE FROM " + tables[0] + " WHERE grace = ? AND dataset = ?",
-		"DELETE FROM " + tables[1] + " WHERE grace = ? AND dataset = ?",
+		"DELETE FROM " + tables[0] + " WHERE grace = $1 AND dataset = $2",
+		"DELETE FROM " + tables[1] + " WHERE grace = $1 AND dataset = $2",
 	}
 
 	var geterror = func(debugmessage, message string) error {
@@ -207,8 +197,8 @@ func Deldataset(log *logging.Logger, db *DB, section, grace string, dataset int)
 	}
 
 	if section != "" {
-		queries[0] = queries[0] + " AND area = ?"
-		queries[1] = queries[1] + " AND area = ?"
+		queries[0] = queries[0] + " AND area = $3"
+		queries[1] = queries[1] + " AND area = $3"
 	}
 
 	tx, err = db.Conn.Begin()
