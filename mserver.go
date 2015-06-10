@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"server"
+	"strings"
 )
 
 const VERSION = "1.0"
@@ -52,9 +53,17 @@ func check_structure(repository string) {
 func setlog(level logging.Level, filename string) *logging.Logger {
 	var backend *logging.LogBackend
 	var log = logging.MustGetLogger("Memento Server")
-	var format = logging.MustStringFormatter(
-		"%{time:2006-01-02 15:04:05.000} %{level} - Memento - %{message}",
-	)
+	var format logging.Formatter
+
+	if strings.ToUpper(level.String()) != "DEBUG" {
+		format = logging.MustStringFormatter(
+			"%{time:2006-01-02 15:04:05.000} %{level} - Memento - %{message}",
+		)
+	} else {
+		format = logging.MustStringFormatter(
+			"%{time:2006-01-02 15:04:05.000} %{level} - %{shortfile} - Memento - %{message}",
+		)
+	}
 
 	if filename == "" {
 		backend = logging.NewLogBackend(os.Stderr, "", 0)
@@ -127,7 +136,7 @@ func main() {
 	log := setlog(loglevel, cfg.Section("general").Key("log_file").String())
 
 	log.Info("Started version " + VERSION)
-	log.Debug("%{longfunc}:%{id:03x} - Grace selected: " + grace)
+	log.Debug("Grace selected: " + grace)
 
 	server.Sync(log, cfg, grace)
 
