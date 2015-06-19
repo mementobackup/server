@@ -50,7 +50,10 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 	var err error
 
 	if data.Os == "windows" {
-		item = strings.Replace(data.Name, "\\", "/", -1)
+		pass1 := strings.Replace(data.Name, ":", "", 1)
+		pass2 := strings.Replace(pass1, "\\", "/", -1)
+
+		item = pass2
 	} else {
 		item = data.Name
 	}
