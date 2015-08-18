@@ -30,7 +30,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func Sync(log *logging.Logger, cfg *ini.File, grace string) {
+func Sync(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	const POOL = 5
 	var db database.DB
 	var tx *sql.Tx
@@ -51,10 +51,12 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string) {
 	dataset = database.Getdataset(log, tx, grace)
 	tx.Commit()
 
-	if nextds := dataset + 1; nextds > maxdatasets {
-		dataset = 1
-	} else {
-		dataset = dataset + 1
+	if !reload {
+		if nextds := dataset + 1; nextds > maxdatasets {
+			dataset = 1
+		} else {
+			dataset = dataset + 1
+		}
 	}
 	log.Info("Dataset processed: " + strconv.Itoa(dataset))
 

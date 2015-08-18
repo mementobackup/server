@@ -31,6 +31,7 @@ H,hour                Hourly backup
 D,day                 Daily backup
 W,week                Weekly backup
 M,month               Monthly backup
+r,reload-dataset      Reload last dataset
 `
 
 func check_structure(repository string) {
@@ -82,6 +83,8 @@ func setlog(level logging.Level, filename string) *logging.Logger {
 }
 
 func main() {
+	var reload bool
+
 	s := options.NewOptions(SPEC)
 
 	// Check if options isn't passed
@@ -123,6 +126,12 @@ func main() {
 		s.PrintUsageAndExit("No grace selected")
 	}
 
+	if opts.GetBool("reload-dataset") {
+		reload = true
+	} else {
+		reload = false
+	}
+
 	cfg, err := ini.Load([]byte{}, opts.Get("cfg"))
 	if err != nil {
 		fmt.Println("Error about reading config file:", err)
@@ -138,7 +147,7 @@ func main() {
 	log.Info("Started version " + VERSION)
 	log.Debug("Grace selected: " + grace)
 
-	server.Sync(log, cfg, grace)
+	server.Sync(log, cfg, grace, reload)
 
 	log.Info("Ended version " + VERSION)
 }
