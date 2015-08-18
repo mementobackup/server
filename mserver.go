@@ -31,7 +31,7 @@ H,hour                Hourly backup
 D,day                 Daily backup
 W,week                Weekly backup
 M,month               Monthly backup
-r,reload-dataset      Reload last dataset
+R,reload-dataset      Reload last dataset
 `
 
 func check_structure(repository string) {
