@@ -26,7 +26,7 @@ Usage: mserver [OPTIONS]
 --
 h,help                Print this help
 v,version             Print version
-c,cfg=                Open the configuration file
+b,backup=             Enable backup operation
 H,hour                Hourly backup
 D,day                 Daily backup
 W,week                Weekly backup
@@ -106,10 +106,10 @@ func main() {
 		s.PrintUsageAndExit("Memento server " + VERSION)
 	}
 
-	// Read Ini file (mandatory)
-	if !opts.GetBool("cfg") {
-		// If configuration file is not passed, print help and exit
-		s.PrintUsageAndExit("No configuration file passed")
+	// Check backup operation (mandatory)
+	if !opts.GetBool("backup")  {
+		// If backup option is not passed, print help and exit
+		s.PrintUsageAndExit("Cannot perform a backup operation")
 	}
 
 	// Read grace (mandatory)
@@ -132,7 +132,7 @@ func main() {
 		reload = false
 	}
 
-	cfg, err := ini.Load([]byte{}, opts.Get("cfg"))
+	cfg, err := ini.Load([]byte{}, opts.Get("backup"))
 	if err != nil {
 		fmt.Println("Error about reading config file:", err)
 		os.Exit(1)
