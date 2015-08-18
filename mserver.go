@@ -26,7 +26,8 @@ Usage: mserver [OPTIONS]
 --
 h,help                Print this help
 v,version             Print version
-b,backup=             Enable backup operation
+b,backup=             Perform backup operation
+r,restore=            Perform restore operation
 H,hour                Hourly backup
 D,day                 Daily backup
 W,week                Weekly backup
@@ -83,7 +84,10 @@ func setlog(level logging.Level, filename string) *logging.Logger {
 }
 
 func main() {
+	var cfg *ini.File
+	var backup bool
 	var reload bool
+	var err error
 
 	s := options.NewOptions(SPEC)
 
@@ -106,10 +110,10 @@ func main() {
 		s.PrintUsageAndExit("Memento server " + VERSION)
 	}
 
-	// Check backup operation (mandatory)
-	if !opts.GetBool("backup")  {
-		// If backup option is not passed, print help and exit
-		s.PrintUsageAndExit("Cannot perform a backup operation")
+	// Check backup or restore operation (mandatory)
+	if opts.GetBool("backup") && opts.GetBool("restore") {
+		// If backup and restore options are passed in the same session, print help and exit
+		s.PrintUsageAndExit("Cannot perform a backup and restore operations in the same session")
 	}
 
 	// Read grace (mandatory)
@@ -132,14 +136,18 @@ func main() {
 		reload = false
 	}
 
-	cfg, err := ini.Load([]byte{}, opts.Get("backup"))
+	if opts.GetBool("backup") {
+		backup = true
+		cfg, err = ini.Load([]byte{}, opts.Get("backup"))
+	} else if opts.GetBool("restore") {
+		backup = false
+		cfg, err = ini.Load([]byte{}, opts.Get("backup"))
+	}
+
 	if err != nil {
 		fmt.Println("Error about reading config file:", err)
 		os.Exit(1)
 	}
-
-	repository := cfg.Section("general").Key("repository").String()
-	check_structure(repository)
 
 	loglevel, _ := logging.LogLevel(cfg.Section("general").Key("log_level").String())
 	log := setlog(loglevel, cfg.Section("general").Key("log_file").String())
@@ -147,7 +155,14 @@ func main() {
 	log.Info("Started version " + VERSION)
 	log.Debug("Grace selected: " + grace)
 
-	server.Sync(log, cfg, grace, reload)
+	if backup {
+		repository := cfg.Section("general").Key("repository").String()
+		check_structure(repository)
+
+		server.Sync(log, cfg, grace, reload)
+	} else {
+		// TODO: add restore operation
+	}
 
 	log.Info("Ended version " + VERSION)
 }
