@@ -14,7 +14,7 @@ import (
 	"github.com/op/go-logging"
 	"server/database"
 	"server/dataset"
-	"server/syncing"
+	"server/backup"
 	"strconv"
 	"sync"
 )
@@ -93,5 +93,5 @@ func filesync(log *logging.Logger, section *common.Section, cfg *ini.File, c cha
 	dataset.Deldataset(log, cfg, section.Name, section.Grace, section.Dataset)
 
 	log.Info("About to execute section " + section.Name)
-	syncing.Filesync(log, section, cfg)
+	backup.Filesync(log, section, cfg)
 }

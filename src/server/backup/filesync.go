@@ -5,7 +5,7 @@
  License       GPL version 2 (see GPL.txt for details)
 */
 
-package syncing
+package backup
 
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
