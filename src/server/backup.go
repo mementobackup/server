@@ -19,17 +19,6 @@ import (
 	"sync"
 )
 
-var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
 func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	const POOL = 5
 	var db database.DB
