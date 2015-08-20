@@ -30,7 +30,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func Sync(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
+func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	const POOL = 5
 	var db database.DB
 	var tx *sql.Tx
@@ -71,7 +71,7 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 					Compressed: section.Key("compress").MustBool(),
 				}
 
-				go filesync(log, &sect, cfg, c, wg)
+				go filebackup(log, &sect, cfg, c, wg)
 				c <- true
 			}
 		}
@@ -84,7 +84,7 @@ func Sync(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	tx.Commit()
 }
 
-func filesync(log *logging.Logger, section *common.Section, cfg *ini.File, c chan bool, wg *sync.WaitGroup) {
+func filebackup(log *logging.Logger, section *common.Section, cfg *ini.File, c chan bool, wg *sync.WaitGroup) {
 	defer func() {
 		<-c
 		wg.Done()

@@ -159,7 +159,7 @@ func main() {
 		repository := cfg.Section("general").Key("repository").String()
 		check_structure(repository)
 
-		server.Sync(log, cfg, grace, reload)
+		server.Backup(log, cfg, grace, reload)
 	} else {
 		// TODO: add restore operation
 	}
