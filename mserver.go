@@ -149,6 +149,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	repository := cfg.Section("general").Key("repository").String()
+	check_structure(repository)
+
 	loglevel, _ := logging.LogLevel(cfg.Section("general").Key("log_level").String())
 	log := setlog(loglevel, cfg.Section("general").Key("log_file").String())
 
@@ -156,9 +159,6 @@ func main() {
 	log.Debug("Grace selected: " + grace)
 
 	if backup {
-		repository := cfg.Section("general").Key("repository").String()
-		check_structure(repository)
-
 		server.Backup(log, cfg, grace, reload)
 	} else {
 		// TODO: add restore operation
