@@ -139,6 +139,6 @@ func Filebackup(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	// Retrieve file's metadata
 	fs_get_metadata(log, section, cfg)
 
-	// Retrieve file's metadata
+	// Retrieve file's data
 	fs_get_data(log, section, cfg)
 }
