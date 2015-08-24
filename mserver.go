@@ -161,7 +161,7 @@ func main() {
 	if backup {
 		server.Backup(log, cfg, grace, reload)
 	} else {
-		// TODO: add restore operation
+		server.Restore(log, cfg, grace)
 	}
 
 	log.Info("Ended version " + VERSION)
