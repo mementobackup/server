@@ -135,7 +135,7 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	}
 }
 
-func Filesync(log *logging.Logger, section *common.Section, cfg *ini.File) {
+func Filebackup(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	// Execute pre_command
 	exec_command(log, cfg.Section(section.Name), "pre_command")
 

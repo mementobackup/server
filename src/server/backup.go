@@ -82,5 +82,5 @@ func filebackup(log *logging.Logger, section *common.Section, cfg *ini.File, c c
 	dataset.Deldataset(log, cfg, section.Name, section.Grace, section.Dataset)
 
 	log.Info("About to execute section " + section.Name)
-	backup.Filesync(log, section, cfg)
+	backup.Filebackup(log, section, cfg)
 }
