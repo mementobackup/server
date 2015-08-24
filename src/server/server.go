@@ -6,14 +6,15 @@
 */
 
 package server
+
 import (
-	"github.com/op/go-logging"
-	"bufio"
-	"net"
 	"bitbucket.org/ebianchi/memento-common/common"
-	"github.com/go-ini/ini"
-	"server/network"
+	"bufio"
 	"encoding/json"
+	"github.com/go-ini/ini"
+	"github.com/op/go-logging"
+	"net"
+	"server/network"
 )
 
 var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}

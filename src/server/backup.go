@@ -12,9 +12,9 @@ import (
 	"database/sql"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
+	"server/backup"
 	"server/database"
 	"server/dataset"
-	"server/backup"
 	"strconv"
 	"sync"
 )
