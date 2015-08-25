@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
+	"restore"
 )
 
 func Restore(log *logging.Logger, cfg *ini.File, grace string) {
@@ -35,7 +36,8 @@ func filerestore(log *logging.Logger, cfg *ini.File, section *common.Section) {
 	// Execute pre_command
 	exec_command(log, cfg.Section(section.Name), "pre_command")
 
-	// TODO: add restore command
+	// Restore!
+	restore.Filerestore(log, section, cfg)
 
 	// Execute post_command
 	exec_command(log, cfg.Section(section.Name), "post_command")
