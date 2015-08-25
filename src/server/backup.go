@@ -81,7 +81,7 @@ func filebackup(log *logging.Logger, section *common.Section, cfg *ini.File, c c
 
 	dataset.Deldataset(log, cfg, section.Name, section.Grace, section.Dataset)
 
-	log.Info("About to execute section " + section.Name)
+	log.Info("About to backup section " + section.Name)
 
 	// Execute pre_command
 	exec_command(log, cfg.Section(section.Name), "pre_command")
