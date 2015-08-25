@@ -11,7 +11,7 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
-	"restore"
+	"server/restore"
 )
 
 func Restore(log *logging.Logger, cfg *ini.File, grace string) {
