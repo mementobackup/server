@@ -14,5 +14,15 @@ import (
 )
 
 func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
+	var cmd common.JSONMessage
 
+	cmd.Context = "file"
+	cmd.Command.Name = "put"
+	cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
+
+	if cfg.Section(section.Name).Key("path").String() == "" {
+		// TODO: write full section restore
+	} else {
+		// TODO: write file restore
+	}
 }
