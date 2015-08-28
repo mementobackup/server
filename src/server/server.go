@@ -49,7 +49,7 @@ func exec_command(log *logging.Logger, section *ini.Section, command string) {
 		cmd = common.JSONMessage{}
 		cmd.Context = "system"
 		cmd.Command.Name = "exec"
-		cmd.Command.Value = section.Key(command).String()
+		cmd.Command.Cmd = section.Key(command).String()
 
 		if err = cmd.Send(conn); err != nil {
 			log.Error("Sending " + command + " failed: " + err.Error())
