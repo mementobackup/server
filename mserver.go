@@ -141,7 +141,7 @@ func main() {
 		cfg, err = ini.Load([]byte{}, opts.Get("backup"))
 	} else if opts.GetBool("restore") {
 		backup = false
-		cfg, err = ini.Load([]byte{}, opts.Get("backup"))
+		cfg, err = ini.Load([]byte{}, opts.Get("restore"))
 	}
 
 	if err != nil {
