@@ -73,18 +73,18 @@ func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadat
 	return nil
 }
 
-func Listitems(log *logging.Logger, db *DB, section *common.Section, item string) <-chan common.JSONFile {
+func Listitems(log *logging.Logger, db *DB, section *common.Section, itemtype string) <-chan common.JSONFile {
 	var resitem common.JSONFile
 	var rows *sql.Rows
-	var element, os, hash, itemtype, link string
+	var element, os, hash, link string
 	var err error
 
-	var query = "SELECT element, os, hash, type, link" +
+	var query = "SELECT element, os, hash, link" +
 		" FROM attrs WHERE type = $1 AND area = $2 AND grace = $3 AND dataset = $4"
 
 	result := make(chan common.JSONFile)
 
-	rows, err = db.Conn.Query(query, item, section.Name, section.Grace, section.Dataset)
+	rows, err = db.Conn.Query(query, itemtype, section.Name, section.Grace, section.Dataset)
 	if err != nil {
 		log.Error("List items error: " + err.Error())
 	}
@@ -92,7 +92,7 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, item string
 	// Return a generator
 	go func() {
 		for rows.Next() {
-			err = rows.Scan(&element, &os, &hash, &itemtype, &link)
+			err = rows.Scan(&element, &os, &hash, &link)
 			if err != nil {
 				log.Error("List values extraction error: " + err.Error())
 			}
