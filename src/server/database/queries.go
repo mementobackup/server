@@ -143,6 +143,32 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 	}
 }
 
+func Getitem(log *logging.Logger, db *DB, element string, section *common.Section) (common.JSONFile, bool) {
+	// TODO: extract ACLs for item
+	var compressed bool
+	var result common.JSONFile
+	var rows *sql.Rows
+	var err error
+
+	var query = "SELECT os, username, groupname, type, " +
+		"link, mtime, ctime, hash, perms, compressed FROM attrs " +
+		"WHERE element = $1 AND area = $2 AND grace = $3 AND dataset = $4"
+
+	rows, err = db.Conn.Query(query, element, section.Name, section.Grace, section.Dataset)
+	if err != nil {
+		log.Error("Get item error: " + err.Error())
+	}
+
+	rows.Next()
+	err = rows.Scan(&result.Os, &result.User, &result.Group, &result.Type, &result.Link,
+		&result.Mtime, &result.Ctime, &result.Hash, &result.Mode, &compressed)
+	if err != nil {
+		log.Error("Get item values extraction error: " + err.Error())
+	}
+
+	return result, compressed
+}
+
 func Getdataset(log *logging.Logger, tx *sql.Tx, grace string) int {
 	var result int
 
