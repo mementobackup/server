@@ -165,6 +165,7 @@ func Getitem(log *logging.Logger, db *DB, element string, section *common.Sectio
 	if err != nil {
 		log.Error("Get item values extraction error: " + err.Error())
 	}
+	result.Name = element
 
 	return result, compressed
 }
