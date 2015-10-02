@@ -35,7 +35,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 
 	cmd.Context = "file"
 	cmd.Command.Name = "list"
-	cmd.Command.Directory = strings.Split(cfg.Section(section.Name).Key("path").String(), ",")
+	cmd.Command.Paths = strings.Split(cfg.Section(section.Name).Key("path").String(), ",")
 	cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
 
 	conn, err = network.Getsocket(cfg.Section(section.Name))

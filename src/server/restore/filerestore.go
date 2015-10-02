@@ -39,7 +39,7 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 		fmt.Println(compressed)
 
 		cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
-		cmd.Command.File = cfg.Section(section.Name).Key("path").String()
+		cmd.Command.Element = res
 		put(log, &cmd)
 	}
 }

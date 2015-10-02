@@ -85,7 +85,7 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 		} else {
 			cmd.Context = "file"
 			cmd.Command.Name = "get"
-			cmd.Command.File = data.Name
+			cmd.Command.Element = data
 
 			conn, err = network.Getsocket(cfg.Section(section.Name))
 			if err != nil {
