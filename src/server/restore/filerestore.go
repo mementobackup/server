@@ -9,10 +9,12 @@ package restore
 
 import (
 	"bitbucket.org/ebianchi/memento-common/common"
+	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
+	"net"
 	"server/database"
-	"fmt"
+	"server/network"
 )
 
 func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
@@ -38,12 +40,23 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 		fmt.Println(res)
 		fmt.Println(compressed)
 
-		cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
 		cmd.Command.Element = res
-		put(log, &cmd)
+		cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
+		put(log, section, cfg, &cmd)
 	}
 }
 
-func put(log *logging.Logger, cmd *common.JSONMessage) {
+func put(log *logging.Logger, section *common.Section, cfg *ini.File, cmd *common.JSONMessage) {
+	var conn net.Conn
+	var err error
 
+	conn, err = network.Getsocket(cfg.Section(section.Name))
+	if err != nil {
+		log.Error("Error when opening connection with section " + section.Name)
+		log.Debug("error: " + err.Error())
+		return
+	}
+	defer conn.Close()
+
+	cmd.Send(conn)
 }
