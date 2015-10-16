@@ -16,7 +16,6 @@ import (
 	"path/filepath"
 	"server/dataset"
 	"server/network"
-	"strings"
 )
 
 func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, data common.JSONFile, previous bool) {
@@ -25,15 +24,7 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 	var conn net.Conn
 	var err error
 
-	if data.Os == "windows" {
-		pass1 := strings.Replace(data.Name, ":", "", 1)
-		pass2 := strings.Replace(pass1, "\\", "/", -1)
-
-		item = pass2
-	} else {
-		item = data.Name
-	}
-
+	item = dataset.Convertpath(data.Os, data.Name)
 	source = dataset.Path(cfg, section, true) + string(filepath.Separator) + item
 	dest = dataset.Path(cfg, section, false) + string(filepath.Separator) + item
 

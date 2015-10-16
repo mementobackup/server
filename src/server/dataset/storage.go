@@ -102,3 +102,18 @@ func Path(cfg *ini.File, section *common.Section, previous bool) string {
 
 	return destination
 }
+
+func Convertpath(os, name string) string {
+	var item string
+
+	if os == "windows" {
+		pass1 := strings.Replace(name, ":", "", 1)
+		pass2 := strings.Replace(pass1, "\\", string(filepath.Separator), -1)
+
+		item = pass2
+	} else {
+		item = name
+	}
+
+	return item
+}
