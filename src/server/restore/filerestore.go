@@ -19,7 +19,6 @@ import (
 
 func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var cmd common.JSONMessage
-	var res common.JSONFile
 	var db database.DB
 	var compressed bool
 
@@ -36,11 +35,9 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	} else {
 		log.Debug("About to restore path " + cfg.Section(section.Name).Key("path").String())
 
-		res, compressed = database.Getitem(log, &db, cfg.Section(section.Name).Key("path").String(), section)
-		fmt.Println(res)
+		cmd.Command.Element, compressed = database.Getitem(log, &db, cfg.Section(section.Name).Key("path").String(), section)
 		fmt.Println(compressed)
 
-		cmd.Command.Element = res
 		cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
 		put(log, section, cfg, &cmd)
 	}
