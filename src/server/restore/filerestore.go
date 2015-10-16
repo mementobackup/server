@@ -13,7 +13,9 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"net"
+	"path/filepath"
 	"server/database"
+	"server/dataset"
 	"server/network"
 )
 
@@ -56,4 +58,14 @@ func put(log *logging.Logger, section *common.Section, cfg *ini.File, cmd *commo
 	defer conn.Close()
 
 	cmd.Send(conn)
+
+	if cmd.Command.Element.Type == "file" {
+
+		transfered := dataset.Path(cfg, section, false) + string(filepath.Separator) + cmd.Command.Element.Name
+		fmt.Println(transfered)
+		if err := common.Sendfile(transfered, conn); err != nil {
+			log.Debug("Error when sending file: ", err.Error())
+		}
+
+	}
 }
