@@ -14,34 +14,10 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"server/network"
-	"strconv"
-	"strings"
 	"server/dataset"
+	"server/network"
+	"strings"
 )
-
-func fs_compute_dest(path string, cfg *ini.File, section *common.Section, previous bool) string {
-	var dataset int
-
-	if previous {
-		if section.Dataset == 1 {
-			dataset = cfg.Section("dataset").Key(section.Grace).MustInt()
-		} else {
-			dataset = section.Dataset - 1
-		}
-	} else {
-		dataset = section.Dataset
-	}
-
-	destination := strings.Join([]string{
-		cfg.Section("general").Key("repository").String(),
-		section.Grace,
-		strconv.Itoa(dataset),
-		section.Name,
-	}, string(filepath.Separator))
-
-	return destination
-}
 
 func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, data common.JSONFile, previous bool) {
 	var item, source, dest, hash string
@@ -58,8 +34,8 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 		item = data.Name
 	}
 
-	source = fs_compute_dest(data.Name, cfg, section, true) + string(filepath.Separator) + item
-	dest = fs_compute_dest(data.Name, cfg, section, false) + string(filepath.Separator) + item
+	source = dataset.Path(cfg, section, true) + string(filepath.Separator) + item
+	dest = dataset.Path(cfg, section, false) + string(filepath.Separator) + item
 
 	log.Debug("Save item: " + dest)
 

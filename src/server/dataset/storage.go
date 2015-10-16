@@ -8,15 +8,16 @@
 package dataset
 
 import (
+	"bitbucket.org/ebianchi/memento-common/common"
+	"compress/gzip"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
+	"io"
 	"os"
 	"path/filepath"
 	"server/database"
 	"strconv"
 	"strings"
-	"compress/gzip"
-	"io"
 )
 
 func Deldataset(log *logging.Logger, cfg *ini.File, section, grace string, dataset int) {
@@ -77,4 +78,27 @@ func Compressfile(log *logging.Logger, filename string) {
 		return
 	}
 	os.Remove(filename)
+}
+
+func Path(cfg *ini.File, section *common.Section, previous bool) string {
+	var dataset int
+
+	if previous {
+		if section.Dataset == 1 {
+			dataset = cfg.Section("dataset").Key(section.Grace).MustInt()
+		} else {
+			dataset = section.Dataset - 1
+		}
+	} else {
+		dataset = section.Dataset
+	}
+
+	destination := strings.Join([]string{
+		cfg.Section("general").Key("repository").String(),
+		section.Grace,
+		strconv.Itoa(dataset),
+		section.Name,
+	}, string(filepath.Separator))
+
+	return destination
 }
