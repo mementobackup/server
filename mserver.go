@@ -43,10 +43,14 @@ func check_structure(repository string) {
 		"month",
 	}
 
-	if _, err := os.Stat(repository); err != nil {
+	if _, err1 := os.Stat(repository); err1 != nil {
 		for _, dir := range directories {
-			if os.IsNotExist(err) {
-				os.MkdirAll(repository+string(filepath.Separator)+dir, 0755)
+			if os.IsNotExist(err1) {
+				structure := repository + string(filepath.Separator) + dir
+				if err2 := os.MkdirAll(structure, 0755); err2 != nil {
+					fmt.Fprint(os.Stderr, "Could not create structure "+structure+"\n")
+					os.Exit(2)
+				}
 			}
 		}
 	}
