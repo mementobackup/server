@@ -84,11 +84,15 @@ func filebackup(log *logging.Logger, section *common.Section, cfg *ini.File, c c
 	log.Info("About to backup section " + section.Name)
 
 	// Execute pre_command
-	exec_command(log, cfg.Section(section.Name), "pre_command")
+	if err := exec_command(log, cfg.Section(section.Name), "pre_command"); err != nil {
+		// TODO: manage error
+	}
 
 	// Backup!
 	backup.Filebackup(log, section, cfg)
 
 	// Execute post_command
-	exec_command(log, cfg.Section(section.Name), "post_command")
+	if err := exec_command(log, cfg.Section(section.Name), "post_command"); err != nil {
+		// TODO: manage error
+	}
 }
