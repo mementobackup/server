@@ -10,24 +10,23 @@ package network
 import (
 	"crypto/rand"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"github.com/go-ini/ini"
+	"io/ioutil"
 	"net"
 	"time"
 )
 
 func Getsocket(cfg *ini.Section) (net.Conn, error) {
 	var conn net.Conn
-	var tcpAddr *net.TCPAddr
 	var err error
 
 	host := cfg.Key("host").String()
 	port := cfg.Key("port").String()
 
 	address := host + ":" + port
-	tcpAddr, err = net.ResolveTCPAddr("tcp", address)
-
-	if err != nil {
+	if _, err = net.ResolveTCPAddr("tcp", address); err != nil {
 		return nil, err
 	}
 
@@ -41,22 +40,29 @@ func Getsocket(cfg *ini.Section) (net.Conn, error) {
 			return nil, err
 		}
 
+		caCert, err := ioutil.ReadFile(key)
+		if err != nil {
+			return nil, err
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
 		config := tls.Config{
-			InsecureSkipVerify: true,
-			Certificates:       []tls.Certificate{cert},
+			RootCAs:      caCertPool,
+			Certificates: []tls.Certificate{cert},
 		}
 
 		now := time.Now()
 		config.Time = func() time.Time { return now }
 		config.Rand = rand.Reader
 
-		conn, err = tls.Dial("tcp", tcpAddr.String(), &config)
+		conn, err = tls.Dial("tcp", address, &config)
 		if err != nil {
 			return nil, err
 		}
 
 	} else {
-		conn, err = net.Dial("tcp", tcpAddr.String())
+		conn, err = net.Dial("tcp", address)
 		if err != nil {
 			return nil, err
 		}
