@@ -43,6 +43,7 @@ func (db *DB) Open(log *logging.Logger, cfg *ini.File) {
 		"host=" + db.Host,
 		"port=" + db.Port,
 		"dbname=" + db.Database,
+		"sslmode=disable", // For now, SSL connection to PostgreSQL is disabled
 	}, " ")
 
 	db.Conn, err = sql.Open("postgres", dsn)
