@@ -15,6 +15,14 @@ import (
 	"strconv"
 )
 
+func errorMsg(log *logging.Logger, position int, message string) *common.OperationErr {
+	log.Error(message)
+	return &common.OperationErr{Operation: "database",
+		Position: position,
+		Message:  message,
+	}
+}
+
 func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) error {
 	var acl common.JSONFileAcl
 	var stmt *sql.Stmt
@@ -26,9 +34,8 @@ func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 
 	stmt, err = tx.Prepare(insert)
 	if err != nil {
-		log.Error("Cannot save ACLs for element " + section.Name)
 		log.Debug("Failed prepare: " + err.Error())
-		return err
+		return errorMsg(log, 1, "Cannot save ACLs for element " + section.Name)
 	}
 
 	for _, acl = range acls {
@@ -40,9 +47,8 @@ func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 				acl.Group, "user", acl.Mode)
 		}
 		if err != nil {
-			log.Error("Cannot save ACLs for element " + section.Name)
 			log.Debug("Failed execute: " + err.Error())
-			return err
+			return errorMsg(log, 2, "Cannot save ACLs for element " + section.Name)
 		}
 	}
 
@@ -60,13 +66,18 @@ func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadat
 		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)"
 
 	stmt, err = tx.Prepare(insert)
+	if err != nil {
+		log.Debug("Failed prepare: " + err.Error())
+		return errorMsg(log, 3, "Cannot save Attributes for element " + section.Name)
+	}
 
 	_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, metadata.Name,
 		metadata.Os, metadata.User, metadata.Group, metadata.Type, metadata.Link,
 		metadata.Mtime, metadata.Ctime, metadata.Hash, metadata.Mode, section.Compressed)
 
 	if err != nil {
-		return err
+		log.Debug("Failed execute: " + err.Error())
+		return errorMsg(log, 4, "Cannot save Attributes for element " + section.Name)
 	}
 
 	stmt.Close()
@@ -183,7 +194,7 @@ func Getdataset(log *logging.Logger, tx *sql.Tx, grace string) int {
 	return result
 }
 
-func Setdataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) {
+func Setdataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) error {
 	var stmt *sql.Stmt
 	var err error
 
@@ -191,18 +202,21 @@ func Setdataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) {
 
 	stmt, err = tx.Prepare(query)
 	if err != nil {
-		log.Debug("Error when setting actual dataset: " + err.Error())
-		return
+		log.Debug("Failed prepare: " + err.Error())
+		return errorMsg(log, 5, "Error when setting actual dataset")
 	}
 
 	_, err = stmt.Exec(actual, grace)
 	if err != nil {
-		log.Debug("Error when setting actual dataset: " + err.Error())
+		log.Debug("Failed prepare: " + err.Error())
+		return errorMsg(log, 6, "Error when setting actual dataset")
 	}
 
 	log.Debug("Dataset updated: " + strconv.Itoa(actual))
 
 	stmt.Close()
+
+	return nil
 }
 
 func Deldataset(log *logging.Logger, db *DB, section, grace string, dataset int) error {
