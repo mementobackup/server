@@ -85,6 +85,7 @@ func filebackup(log *logging.Logger, section *common.Section, cfg *ini.File, c c
 
 	// Execute pre_command
 	if err := exec_command(log, cfg.Section(section.Name), "pre_command"); err != nil {
+		log.Debug(err.Error())
 		// TODO: manage error
 	}
 
@@ -93,6 +94,7 @@ func filebackup(log *logging.Logger, section *common.Section, cfg *ini.File, c c
 
 	// Execute post_command
 	if err := exec_command(log, cfg.Section(section.Name), "post_command"); err != nil {
+		log.Debug(err.Error())
 		// TODO: manage error
 	}
 }
