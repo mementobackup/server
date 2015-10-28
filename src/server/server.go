@@ -11,7 +11,6 @@ import (
 	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"encoding/json"
-	"errors"
 	"github.com/go-ini/ini"
 	"github.com/op/go-logging"
 	"net"
@@ -29,6 +28,14 @@ func contains(s []string, e string) bool {
 	return false
 }
 
+func errorMsg(log *logging.Logger, position int, message string) *common.OperationErr {
+	log.Error(message)
+	return &common.OperationErr{Operation: "exec",
+		Position: position,
+		Message:  message,
+	}
+}
+
 func exec_command(log *logging.Logger, section *ini.Section, command string) error {
 	var buff *bufio.Reader
 	var conn net.Conn
@@ -40,8 +47,7 @@ func exec_command(log *logging.Logger, section *ini.Section, command string) err
 	if section.Key(command).String() != "" {
 		conn, err = network.Getsocket(section)
 		if err != nil {
-			log.Error("Error when executing " + command + ": " + err.Error())
-			return errors.New("Connection with " + command + " failed: " + err.Error())
+			return errorMsg(log, 1, "Connection with "+command+" failed: "+err.Error())
 		}
 		defer conn.Close()
 
@@ -53,8 +59,7 @@ func exec_command(log *logging.Logger, section *ini.Section, command string) err
 		cmd.Command.Cmd = section.Key(command).String()
 
 		if err = cmd.Send(conn); err != nil {
-			log.Error("Sending " + command + " failed: " + err.Error())
-			return errors.New("Sending " + command + " failed: " + err.Error())
+			return errorMsg(log, 2, "Sending "+command+" failed: "+err.Error())
 		} else {
 			result, err = buff.ReadBytes('\n')
 			if err != nil {
@@ -63,16 +68,17 @@ func exec_command(log *logging.Logger, section *ini.Section, command string) err
 
 			err = json.Unmarshal(result, &res)
 			if err != nil {
-				log.Error("Response result for " + command + " failed: " + err.Error())
-				return errors.New("Response error in " + command + ": " + err.Error())
+				msg := "Response result for " + command + " failed: " + err.Error()
+				log.Error(msg)
+
+				return errorMsg(log, 3, msg)
 			}
 
 			if res.Result == "ok" {
 				log.Debug("Executed " + command)
 				return nil
 			} else {
-				log.Error("Error in " + command + " execution: " + res.Message)
-				return errors.New("Remote command error in " + command + ": " + res.Message)
+				return errorMsg(log, 4, "Error in "+command+" execution: "+res.Message)
 			}
 		}
 	} else {
