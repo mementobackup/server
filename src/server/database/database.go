@@ -37,13 +37,14 @@ func (db *DB) Open(log *logging.Logger, cfg *ini.File) {
 
 	db.populate(cfg)
 
+	// TODO: For now, SSL connection to PostgreSQL is disabled
 	dsn := strings.Join([]string{
 		"user=" + db.User,
 		"password=" + db.Password,
 		"host=" + db.Host,
 		"port=" + db.Port,
 		"dbname=" + db.Database,
-		"sslmode=disable", // For now, SSL connection to PostgreSQL is disabled
+		"sslmode=disable",
 	}, " ")
 
 	db.Conn, err = sql.Open("postgres", dsn)
