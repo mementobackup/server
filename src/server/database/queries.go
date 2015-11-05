@@ -154,9 +154,8 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 	}
 }
 
-func Getitem(log *logging.Logger, db *DB, element *common.JSONFile, section *common.Section) (bool, error) {
+func Getitem(log *logging.Logger, db *DB, element *common.JSONFile, section *common.Section) (error) {
 	// TODO: extract ACLs for item
-	var compressed bool
 	var rows *sql.Rows
 	var err error
 
@@ -171,12 +170,12 @@ func Getitem(log *logging.Logger, db *DB, element *common.JSONFile, section *com
 
 	rows.Next()
 	err = rows.Scan(&element.Os, &element.User, &element.Group, &element.Type, &element.Link,
-		&element.Mtime, &element.Ctime, &element.Hash, &element.Mode, &compressed)
+		&element.Mtime, &element.Ctime, &element.Hash, &element.Mode, &element.Compressed)
 	if err != nil {
 		log.Error("Get item values extraction error: " + err.Error())
 	}
 
-	return compressed, err
+	return err
 }
 
 func Getdataset(log *logging.Logger, tx *sql.Tx, grace string) int {

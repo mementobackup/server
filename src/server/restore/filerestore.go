@@ -22,7 +22,6 @@ import (
 func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var cmd common.JSONMessage
 	var db database.DB
-	var compressed bool
 	var err error
 
 	db.Open(log, cfg)
@@ -39,8 +38,7 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 		log.Debug("About to restore path " + cfg.Section(section.Name).Key("path").String())
 
 		cmd.Command.Element.Name = cfg.Section(section.Name).Key("path").String()
-		compressed, err = database.Getitem(log, &db, &cmd.Command.Element, section)
-		fmt.Println(compressed)
+		err = database.Getitem(log, &db, &cmd.Command.Element, section)
 
 		if err != nil {
 			log.Error("Error when putting data to section " + section.Name)
