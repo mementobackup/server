@@ -154,10 +154,9 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 	}
 }
 
-func Getitem(log *logging.Logger, db *DB, element string, section *common.Section) (common.JSONFile, bool) {
+func Getitem(log *logging.Logger, db *DB, element *common.JSONFile, section *common.Section) (bool, error) {
 	// TODO: extract ACLs for item
 	var compressed bool
-	var result common.JSONFile
 	var rows *sql.Rows
 	var err error
 
@@ -165,20 +164,19 @@ func Getitem(log *logging.Logger, db *DB, element string, section *common.Sectio
 		"link, mtime, ctime, hash, perms, compressed FROM attrs " +
 		"WHERE element = $1 AND area = $2 AND grace = $3 AND dataset = $4"
 
-	rows, err = db.Conn.Query(query, element, section.Name, section.Grace, section.Dataset)
+	rows, err = db.Conn.Query(query, element.Name, section.Name, section.Grace, section.Dataset)
 	if err != nil {
 		log.Error("Get item error: " + err.Error())
 	}
 
 	rows.Next()
-	err = rows.Scan(&result.Os, &result.User, &result.Group, &result.Type, &result.Link,
-		&result.Mtime, &result.Ctime, &result.Hash, &result.Mode, &compressed)
+	err = rows.Scan(&element.Os, &element.User, &element.Group, &element.Type, &element.Link,
+		&element.Mtime, &element.Ctime, &element.Hash, &element.Mode, &compressed)
 	if err != nil {
 		log.Error("Get item values extraction error: " + err.Error())
 	}
-	result.Name = element
 
-	return result, compressed
+	return compressed, err
 }
 
 func Getdataset(log *logging.Logger, tx *sql.Tx, grace string) int {
