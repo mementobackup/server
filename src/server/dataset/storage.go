@@ -8,9 +8,9 @@
 package dataset
 
 import (
-	"bitbucket.org/ebianchi/memento-common/common"
 	"compress/gzip"
 	"github.com/go-ini/ini"
+	"github.com/mementobackup/common/src/common"
 	"github.com/op/go-logging"
 	"io"
 	"os"

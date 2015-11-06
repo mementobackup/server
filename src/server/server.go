@@ -8,10 +8,10 @@
 package server
 
 import (
-	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"encoding/json"
 	"github.com/go-ini/ini"
+	"github.com/mementobackup/common/src/common"
 	"github.com/op/go-logging"
 	"net"
 	"server/network"

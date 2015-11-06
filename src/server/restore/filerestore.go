@@ -8,9 +8,9 @@
 package restore
 
 import (
-	"bitbucket.org/ebianchi/memento-common/common"
 	"fmt"
 	"github.com/go-ini/ini"
+	"github.com/mementobackup/common/src/common"
 	"github.com/op/go-logging"
 	"net"
 	"path/filepath"

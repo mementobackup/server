@@ -8,11 +8,11 @@
 package backup
 
 import (
-	"bitbucket.org/ebianchi/memento-common/common"
 	"bufio"
 	"database/sql"
 	"encoding/json"
 	"github.com/go-ini/ini"
+	"github.com/mementobackup/common/src/common"
 	"github.com/op/go-logging"
 	"io"
 	"net"

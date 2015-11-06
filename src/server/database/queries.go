@@ -8,9 +8,9 @@
 package database
 
 import (
-	"bitbucket.org/ebianchi/memento-common/common"
 	"database/sql"
 	"errors"
+	"github.com/mementobackup/common/src/common"
 	"github.com/op/go-logging"
 	"strconv"
 )
@@ -35,7 +35,7 @@ func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 	stmt, err = tx.Prepare(insert)
 	if err != nil {
 		log.Debug("Failed prepare: " + err.Error())
-		return errorMsg(log, 1, "Cannot save ACLs for element " + section.Name)
+		return errorMsg(log, 1, "Cannot save ACLs for element "+section.Name)
 	}
 
 	for _, acl = range acls {
@@ -48,7 +48,7 @@ func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 		}
 		if err != nil {
 			log.Debug("Failed execute: " + err.Error())
-			return errorMsg(log, 2, "Cannot save ACLs for element " + section.Name)
+			return errorMsg(log, 2, "Cannot save ACLs for element "+section.Name)
 		}
 	}
 
@@ -68,7 +68,7 @@ func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadat
 	stmt, err = tx.Prepare(insert)
 	if err != nil {
 		log.Debug("Failed prepare: " + err.Error())
-		return errorMsg(log, 3, "Cannot save Attributes for element " + section.Name)
+		return errorMsg(log, 3, "Cannot save Attributes for element "+section.Name)
 	}
 
 	_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, metadata.Name,
@@ -77,7 +77,7 @@ func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadat
 
 	if err != nil {
 		log.Debug("Failed execute: " + err.Error())
-		return errorMsg(log, 4, "Cannot save Attributes for element " + section.Name)
+		return errorMsg(log, 4, "Cannot save Attributes for element "+section.Name)
 	}
 
 	stmt.Close()
@@ -154,7 +154,7 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 	}
 }
 
-func Getitem(log *logging.Logger, db *DB, element *common.JSONFile, section *common.Section) (error) {
+func Getitem(log *logging.Logger, db *DB, element *common.JSONFile, section *common.Section) error {
 	// TODO: extract ACLs for item
 	var rows *sql.Rows
 	var err error

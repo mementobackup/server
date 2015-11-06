@@ -8,9 +8,9 @@
 package server
 
 import (
-	"bitbucket.org/ebianchi/memento-common/common"
 	"database/sql"
 	"github.com/go-ini/ini"
+	"github.com/mementobackup/common/src/common"
 	"github.com/op/go-logging"
 	"server/backup"
 	"server/database"
