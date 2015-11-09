@@ -44,7 +44,7 @@ func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 				acl.User, "user", acl.Mode)
 		} else {
 			_, err = stmt.Exec(section.Name, section.Grace, section.Dataset, element,
-				acl.Group, "user", acl.Mode)
+				acl.Group, "group", acl.Mode)
 		}
 		if err != nil {
 			log.Debug("Failed execute: " + err.Error())
