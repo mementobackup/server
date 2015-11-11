@@ -37,9 +37,7 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	} else {
 		log.Debug("About to restore path " + cfg.Section(section.Name).Key("path").String())
 
-		cmd.Command.Element.Name = cfg.Section(section.Name).Key("path").String()
-		err = database.Getitem(log, &db, &cmd.Command.Element, section)
-
+		cmd.Command.Element, err = database.Getitem(log, &db, cfg.Section(section.Name).Key("path").String(), section)
 		if err != nil {
 			log.Error("Error when putting data to section " + section.Name)
 			log.Debug("error: " + err.Error())
@@ -54,6 +52,7 @@ func put(log *logging.Logger, section *common.Section, cfg *ini.File, cmd *commo
 	var conn net.Conn
 	var err error
 
+	fmt.Printf("%+v \n", cmd)
 	conn, err = network.Getsocket(cfg.Section(section.Name))
 	if err != nil {
 		log.Error("Error when opening connection with section " + section.Name)
@@ -65,9 +64,7 @@ func put(log *logging.Logger, section *common.Section, cfg *ini.File, cmd *commo
 	cmd.Send(conn)
 
 	if cmd.Command.Element.Type == "file" {
-
 		transfered := dataset.Path(cfg, section, false) + string(filepath.Separator) + cmd.Command.Element.Name
-		fmt.Println(transfered)
 		if err := common.Sendfile(transfered, conn); err != nil {
 			log.Debug("Error when sending file: ", err.Error())
 		}
