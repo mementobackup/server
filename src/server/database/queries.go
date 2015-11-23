@@ -17,9 +17,10 @@ import (
 
 func errorMsg(log *logging.Logger, position int, message string) *common.OperationErr {
 	log.Error(message)
-	return &common.OperationErr{Operation: "database",
-		Position: position,
-		Message:  message,
+	return &common.OperationErr{
+		Operation: "database",
+		Position:  position,
+		Message:   message,
 	}
 }
 
@@ -159,9 +160,6 @@ func Getitem(log *logging.Logger, db *DB, element string, section *common.Sectio
 	var rows *sql.Rows
 	var err error
 
-
-	// TODO: check if item exists
-
 	var query = "SELECT os, username, groupname, type, " +
 		"link, mtime, ctime, hash, perms, compressed FROM attrs " +
 		"WHERE element = $1 AND area = $2 AND grace = $3 AND dataset = $4"
@@ -171,21 +169,25 @@ func Getitem(log *logging.Logger, db *DB, element string, section *common.Sectio
 		log.Error("Get item error: " + err.Error())
 	}
 
-	rows.Next()
-	err = rows.Scan(&result.Os, &result.User, &result.Group, &result.Type, &result.Link,
-		&result.Mtime, &result.Ctime, &result.Hash, &result.Mode, &result.Compressed)
-	if err != nil {
-		log.Error("Get item values extraction error: " + err.Error())
-	} else {
-		result.Acl, err = Getacls(log, db, element, section)
+	// FIXME: ugly. Find a method for using itemexists() for check if item exists or not
+	if rows.Next() {
+		err = rows.Scan(&result.Os, &result.User, &result.Group, &result.Type, &result.Link,
+			&result.Mtime, &result.Ctime, &result.Hash, &result.Mode, &result.Compressed)
 		if err != nil {
-			log.Error("Get ACLs values extraction error: " + err.Error())
+			log.Error("Get item values extraction error: " + err.Error())
 		} else {
-			result.Name = element
+			result.Acl, err = Getacls(log, db, element, section)
+			if err != nil {
+				log.Error("Get ACLs values extraction error: " + err.Error())
+			} else {
+				result.Name = element
+			}
 		}
-	}
 
-	return result, err
+		return result, err
+	} else {
+		return common.JSONFile{}, errorMsg(log, 7, "Item not found: "+element)
+	}
 }
 
 func Getacls(log *logging.Logger, db *DB, element string, section *common.Section) ([]common.JSONFileAcl, error) {
@@ -196,7 +198,7 @@ func Getacls(log *logging.Logger, db *DB, element string, section *common.Sectio
 	var err error
 
 	var query = "SELECT name, type, perms FROM acls " +
-	"WHERE element = $1 AND area = $2 AND grace = $3 AND dataset = $4"
+		"WHERE element = $1 AND area = $2 AND grace = $3 AND dataset = $4"
 
 	rows, err = db.Conn.Query(query, element, section.Name, section.Grace, section.Dataset)
 	if err != nil {
