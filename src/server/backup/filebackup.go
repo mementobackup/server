@@ -37,6 +37,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 	cmd.Command.Name = "list"
 	cmd.Command.Paths = strings.Split(cfg.Section(section.Name).Key("path").String(), ",")
 	cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
+	log.Debug("Metadata command request: %+v", cmd)
 
 	conn, err = network.Getsocket(cfg.Section(section.Name))
 	if err != nil {
@@ -83,6 +84,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 			return
 		}
 
+		log.Debug("Metadata received: %+v", res)
 		if err = database.Saveattrs(log, tx, section, res.Data); err != nil {
 			log.Error("Failed saving database item: " + res.Data.Name)
 			log.Debug("Trace: " + err.Error())
