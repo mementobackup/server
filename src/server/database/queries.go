@@ -88,10 +88,11 @@ func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadat
 func Listitems(log *logging.Logger, db *DB, section *common.Section, itemtype string) <-chan common.JSONFile {
 	var resitem common.JSONFile
 	var rows *sql.Rows
-	var element, os, hash, link string
 	var err error
 
-	var query = "SELECT element, os, hash, link" +
+	var query = "SELECT element, os, hash, link," +
+		" username, groupname, type," +
+		" mtime, ctime, perms, compressed" +
 		" FROM attrs WHERE type = $1 AND area = $2 AND grace = $3 AND dataset = $4"
 
 	result := make(chan common.JSONFile)
@@ -104,17 +105,11 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, itemtype st
 	// Return a generator
 	go func() {
 		for rows.Next() {
-			err = rows.Scan(&element, &os, &hash, &link)
+			err = rows.Scan(&resitem.Name, &resitem.Os, &resitem.Hash, &resitem.Link,
+				&resitem.User, &resitem.Group, &resitem.Type, &resitem.Mtime,
+				&resitem.Ctime, &resitem.Mode, &resitem.Compressed)
 			if err != nil {
 				log.Error("List values extraction error: " + err.Error())
-			}
-
-			resitem = common.JSONFile{
-				Name: element,
-				Os:   os,
-				Hash: hash,
-				Type: itemtype,
-				Link: link,
 			}
 
 			result <- resitem
