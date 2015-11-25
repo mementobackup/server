@@ -21,6 +21,7 @@ import (
 
 func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var cmd common.JSONMessage
+	var res common.JSONFile
 	var db database.DB
 	var err error
 
@@ -33,7 +34,20 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	if cfg.Section(section.Name).Key("path").String() == "" {
 		log.Debug("About to full restore")
 		cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
-		// TODO: write full section restore
+		for _, item := range []string{"directory", "file", "symlink"} {
+			for res = range database.Listitems(log, &db, section, item) {
+				cmd.Command.Element = res
+
+				switch item {
+				case "directory":
+					put(log, section, cfg, &cmd)
+				case "symlink":
+					put(log, section, cfg, &cmd)
+				case "file":
+					put(log, section, cfg, &cmd)
+				}
+			}
+		}
 	} else {
 		log.Debug("About to restore path " + cfg.Section(section.Name).Key("path").String())
 
