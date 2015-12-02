@@ -35,16 +35,17 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 		cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
 		for _, item := range []string{"directory", "file", "symlink"} {
 			for res = range database.Listitems(log, &db, section, item) {
-				cmd.Command.Element = res
-
-				switch item {
-				case "directory":
-					put(log, section, cfg, &cmd)
-				case "symlink":
-					put(log, section, cfg, &cmd)
-				case "file":
-					put(log, section, cfg, &cmd)
+				if cmd.Command.ACL {
+					log.Debug("About to restore ACLs for " + res.Name)
+					res.Acl, err = database.Getacls(log, &db, res.Name, section)
+					if err != nil {
+						log.Error("ACLs extraction error for " + res.Name)
+						log.Debug("error: " + err.Error())
+					}
 				}
+
+				cmd.Command.Element = res
+				put(log, section, cfg, &cmd)
 			}
 		}
 	} else {
