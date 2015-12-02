@@ -8,7 +8,6 @@
 package restore
 
 import (
-	"fmt"
 	"github.com/go-ini/ini"
 	"github.com/mementobackup/common/src/common"
 	"github.com/op/go-logging"
@@ -66,7 +65,6 @@ func put(log *logging.Logger, section *common.Section, cfg *ini.File, cmd *commo
 	var conn net.Conn
 	var err error
 
-	fmt.Printf("%+v \n", cmd)
 	conn, err = network.Getsocket(cfg.Section(section.Name))
 	if err != nil {
 		log.Error("Error when opening connection with section " + section.Name)
