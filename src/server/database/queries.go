@@ -93,7 +93,8 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, itemtype st
 	var query = "SELECT element, os, hash, link," +
 		" username, groupname, type," +
 		" mtime, ctime, perms, compressed" +
-		" FROM attrs WHERE type = $1 AND area = $2 AND grace = $3 AND dataset = $4"
+		" FROM attrs WHERE type = $1 AND area = $2 AND grace = $3 AND dataset = $4" +
+		" ORDER BY element"
 
 	result := make(chan common.JSONFile)
 
