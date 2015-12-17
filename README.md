@@ -107,7 +107,7 @@ If you want use the SSL connection, you need:
     ```
     
    In particular, be sure to add the hostname of the client machine in the CN field     
-  - Configure server for use SSL with the same certificate.
+ - Configure server for use SSL with the same certificate.
 
 ## Caveats:
 
