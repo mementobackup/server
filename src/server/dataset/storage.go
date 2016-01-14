@@ -33,15 +33,11 @@ func Deldataset(log *logging.Logger, cfg *ini.File, section, grace string, datas
 		log.Error(err.Error())
 	}
 
-	repository := cfg.Section("general").Key("repository").String() +
-		string(filepath.Separator) +
-		grace +
-		string(filepath.Separator) +
-		strconv.Itoa(dataset)
-
-	if section != "" {
-		repository = repository + string(filepath.Separator) + section
-	}
+	repository := Path(cfg, &common.Section{
+		Name:    section,
+		Grace:   grace,
+		Dataset: dataset,
+	}, false)
 
 	os.RemoveAll(repository)
 
