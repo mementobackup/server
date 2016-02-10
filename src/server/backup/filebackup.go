@@ -37,6 +37,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 	cmd.Command.Name = "list"
 	cmd.Command.Paths = strings.Split(cfg.Section(section.Name).Key("path").String(), ",")
 	cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
+	cmd.Command.Exclude = cfg.Section(section.Name).Key("exclude").String()
 	log.Debug("Metadata command request: %+v", cmd)
 
 	conn, err = network.Getsocket(cfg.Section(section.Name))
