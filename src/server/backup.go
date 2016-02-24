@@ -37,7 +37,7 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	defer db.Close()
 
 	tx, _ = db.Conn.Begin()
-	dataset = database.Getdataset(log, tx, grace)
+	dataset = database.GetDataset(log, tx, grace)
 	tx.Commit()
 
 	if !reload {
@@ -60,7 +60,7 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 					Compressed: section.Key("compress").MustBool(),
 				}
 
-				go filebackup(log, &sect, cfg, c, wg)
+				go fileBackup(log, &sect, cfg, c, wg)
 				c <- true
 			}
 		}
@@ -69,22 +69,22 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	close(c)
 
 	tx, _ = db.Conn.Begin()
-	database.Setdataset(log, tx, dataset, grace)
+	database.SetDataset(log, tx, dataset, grace)
 	tx.Commit()
 }
 
-func filebackup(log *logging.Logger, section *common.Section, cfg *ini.File, c chan bool, wg *sync.WaitGroup) {
+func fileBackup(log *logging.Logger, section *common.Section, cfg *ini.File, c chan bool, wg *sync.WaitGroup) {
 	defer func() {
 		<-c
 		wg.Done()
 	}()
 
-	dataset.Deldataset(log, cfg, section.Name, section.Grace, section.Dataset)
+	dataset.DelDataset(log, cfg, section.Name, section.Grace, section.Dataset)
 
 	log.Info("About to backup section " + section.Name)
 
 	// Execute pre_command
-	if err := exec_command(log, cfg.Section(section.Name), "pre_command"); err != nil {
+	if err := execCommand(log, cfg.Section(section.Name), "pre_command"); err != nil {
 		log.Debug(err.Error())
 		// TODO: manage error
 	}
@@ -93,7 +93,7 @@ func filebackup(log *logging.Logger, section *common.Section, cfg *ini.File, c c
 	backup.Filebackup(log, section, cfg)
 
 	// Execute post_command
-	if err := exec_command(log, cfg.Section(section.Name), "post_command"); err != nil {
+	if err := execCommand(log, cfg.Section(section.Name), "post_command"); err != nil {
 		log.Debug(err.Error())
 		// TODO: manage error
 	}

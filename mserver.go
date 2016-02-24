@@ -35,7 +35,7 @@ M,month               Monthly backup
 R,reload-dataset      Reload last dataset
 `
 
-func check_structure(repository string) {
+func checkStructure(repository string) {
 	directories := []string{
 		"hour",
 		"day",
@@ -56,7 +56,7 @@ func check_structure(repository string) {
 	}
 }
 
-func setlog(level logging.Level, filename string) *logging.Logger {
+func setLog(level logging.Level, filename string) *logging.Logger {
 	var backend *logging.LogBackend
 	var log = logging.MustGetLogger("Memento Server")
 	var format logging.Formatter
@@ -154,10 +154,10 @@ func main() {
 	}
 
 	repository := cfg.Section("general").Key("repository").String()
-	check_structure(repository)
+	checkStructure(repository)
 
 	loglevel, _ := logging.LogLevel(cfg.Section("general").Key("log_level").String())
-	log := setlog(loglevel, cfg.Section("general").Key("log_file").String())
+	log := setLog(loglevel, cfg.Section("general").Key("log_file").String())
 
 	log.Info("Started version " + VERSION)
 	log.Debug("Grace selected: " + grace)

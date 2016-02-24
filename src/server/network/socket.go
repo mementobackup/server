@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-func Getsocket(cfg *ini.Section) (net.Conn, error) {
+func GetSocket(cfg *ini.Section) (net.Conn, error) {
 	var conn net.Conn
 	var err error
 

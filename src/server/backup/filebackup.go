@@ -21,7 +21,7 @@ import (
 	"strings"
 )
 
-func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File) {
+func fsGetMetadata(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var conn net.Conn
 	var cmd common.JSONMessage
 	var db database.DB
@@ -40,7 +40,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 	cmd.Command.Exclude = cfg.Section(section.Name).Key("exclude").String()
 	log.Debug("Metadata command request: %+v", cmd)
 
-	conn, err = network.Getsocket(cfg.Section(section.Name))
+	conn, err = network.GetSocket(cfg.Section(section.Name))
 	if err != nil {
 		log.Error("Error when opening connection with section " + section.Name)
 		log.Debug("error: " + err.Error())
@@ -86,7 +86,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 		}
 
 		log.Debug("Metadata received: %+v", res)
-		if err = database.Saveattrs(log, tx, section, res.Data); err != nil {
+		if err = database.SaveAttrs(log, tx, section, res.Data); err != nil {
 			log.Error("Failed saving database item: " + res.Data.Name)
 			log.Debug("Trace: " + err.Error())
 			tx.Rollback()
@@ -94,7 +94,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 			return
 		}
 
-		if err = database.Saveacls(log, tx, section, res.Data.Name, res.Data.Acl); err != nil {
+		if err = database.SaveAcls(log, tx, section, res.Data.Name, res.Data.Acl); err != nil {
 			log.Error("Failed saving ACLs into database for item: " + res.Data.Name)
 			log.Debug("Trace: " + err.Error())
 			tx.Rollback()
@@ -106,7 +106,7 @@ func fs_get_metadata(log *logging.Logger, section *common.Section, cfg *ini.File
 	tx.Commit()
 }
 
-func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
+func fsGetData(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var previous int
 	var res common.JSONFile
 	var db database.DB
@@ -121,17 +121,17 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	defer db.Close()
 
 	for _, item := range []string{"directory", "file", "symlink"} {
-		for res = range database.Listitems(log, &db, section, item) {
+		for res = range database.ListItems(log, &db, section, item) {
 			switch item {
 			case "directory":
-				fs_save_data(log, cfg, section, res, false)
+				fsSaveData(log, cfg, section, res, false)
 			case "symlink":
-				fs_save_data(log, cfg, section, res, false)
+				fsSaveData(log, cfg, section, res, false)
 			case "file":
-				if database.Itemexist(log, &db, &res, section, previous) {
-					fs_save_data(log, cfg, section, res, true)
+				if database.ItemExist(log, &db, &res, section, previous) {
+					fsSaveData(log, cfg, section, res, true)
 				} else {
-					fs_save_data(log, cfg, section, res, false)
+					fsSaveData(log, cfg, section, res, false)
 				}
 			}
 		}
@@ -140,8 +140,8 @@ func fs_get_data(log *logging.Logger, section *common.Section, cfg *ini.File) {
 
 func Filebackup(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	// Retrieve file's metadata
-	fs_get_metadata(log, section, cfg)
+	fsGetMetadata(log, section, cfg)
 
 	// Retrieve file's data
-	fs_get_data(log, section, cfg)
+	fsGetData(log, section, cfg)
 }

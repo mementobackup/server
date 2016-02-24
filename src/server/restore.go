@@ -26,19 +26,19 @@ func Restore(log *logging.Logger, cfg *ini.File, grace string) {
 					Dataset:    dataset,
 					Compressed: section.Key("compress").MustBool(),
 				}
-				filerestore(log, cfg, &sect)
+				fileRestore(log, cfg, &sect)
 			}
 		}
 	}
 }
 
-func filerestore(log *logging.Logger, cfg *ini.File, section *common.Section) {
+func fileRestore(log *logging.Logger, cfg *ini.File, section *common.Section) {
 	// Execute pre_command
-	exec_command(log, cfg.Section(section.Name), "pre_command")
+	execCommand(log, cfg.Section(section.Name), "pre_command")
 
 	// Restore!
-	restore.Filerestore(log, section, cfg)
+	restore.FileRestore(log, section, cfg)
 
 	// Execute post_command
-	exec_command(log, cfg.Section(section.Name), "post_command")
+	execCommand(log, cfg.Section(section.Name), "post_command")
 }

@@ -20,7 +20,7 @@ import (
 	"strings"
 )
 
-func Deldataset(log *logging.Logger, cfg *ini.File, section, grace string, dataset int) {
+func DelDataset(log *logging.Logger, cfg *ini.File, section, grace string, dataset int) {
 	var db database.DB
 
 	log.Debug("About to delete dataset " + strconv.Itoa(dataset) + " for section " + section + " and grace " + grace)
@@ -28,7 +28,7 @@ func Deldataset(log *logging.Logger, cfg *ini.File, section, grace string, datas
 	db.Open(log, cfg)
 	defer db.Close()
 
-	err := database.Deldataset(log, &db, section, grace, dataset)
+	err := database.DelDataset(log, &db, section, grace, dataset)
 	if err != nil {
 		log.Error(err.Error())
 	}
@@ -44,7 +44,7 @@ func Deldataset(log *logging.Logger, cfg *ini.File, section, grace string, datas
 	log.Debug("Dataset deleted")
 }
 
-func Compressfile(log *logging.Logger, filename string) {
+func CompressFile(log *logging.Logger, filename string) {
 	var filesource, filedest *os.File
 	var err error
 
@@ -99,7 +99,7 @@ func Path(cfg *ini.File, section *common.Section, previous bool) string {
 	return destination
 }
 
-func Convertpath(os, name string) string {
+func ConvertPath(os, name string) string {
 	var item string
 
 	if os == "windows" {

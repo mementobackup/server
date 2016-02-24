@@ -24,7 +24,7 @@ func errorMsg(log *logging.Logger, position int, message string) *common.Operati
 	}
 }
 
-func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) error {
+func SaveAcls(log *logging.Logger, tx *sql.Tx, section *common.Section, element string, acls []common.JSONFileAcl) error {
 	var acl common.JSONFileAcl
 	var stmt *sql.Stmt
 	var err error
@@ -57,7 +57,7 @@ func Saveacls(log *logging.Logger, tx *sql.Tx, section *common.Section, element 
 	return nil
 }
 
-func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadata common.JSONFile) error {
+func SaveAttrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadata common.JSONFile) error {
 	var stmt *sql.Stmt
 	var err error
 
@@ -85,7 +85,7 @@ func Saveattrs(log *logging.Logger, tx *sql.Tx, section *common.Section, metadat
 	return nil
 }
 
-func Listitems(log *logging.Logger, db *DB, section *common.Section, itemtype string) <-chan common.JSONFile {
+func ListItems(log *logging.Logger, db *DB, section *common.Section, itemtype string) <-chan common.JSONFile {
 	var resitem common.JSONFile
 	var rows *sql.Rows
 	var err error
@@ -123,7 +123,7 @@ func Listitems(log *logging.Logger, db *DB, section *common.Section, itemtype st
 	return result
 }
 
-func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *common.Section, previous int) bool {
+func ItemExist(log *logging.Logger, db *DB, item *common.JSONFile, section *common.Section, previous int) bool {
 	var dataset, result int
 
 	if previous > 0 {
@@ -151,7 +151,7 @@ func Itemexist(log *logging.Logger, db *DB, item *common.JSONFile, section *comm
 	}
 }
 
-func Getitem(log *logging.Logger, db *DB, element string, section *common.Section) (common.JSONFile, error) {
+func GetItem(log *logging.Logger, db *DB, element string, section *common.Section) (common.JSONFile, error) {
 	var result common.JSONFile
 	var rows *sql.Rows
 	var err error
@@ -172,7 +172,7 @@ func Getitem(log *logging.Logger, db *DB, element string, section *common.Sectio
 		if err != nil {
 			log.Error("Get item values extraction error: " + err.Error())
 		} else {
-			result.Acl, err = Getacls(log, db, element, section)
+			result.Acl, err = GetAcls(log, db, element, section)
 			if err != nil {
 				log.Error("Get ACLs values extraction error: " + err.Error())
 			} else {
@@ -186,7 +186,7 @@ func Getitem(log *logging.Logger, db *DB, element string, section *common.Sectio
 	}
 }
 
-func Getacls(log *logging.Logger, db *DB, element string, section *common.Section) ([]common.JSONFileAcl, error) {
+func GetAcls(log *logging.Logger, db *DB, element string, section *common.Section) ([]common.JSONFileAcl, error) {
 	var rows *sql.Rows
 	var result []common.JSONFileAcl
 	var data common.JSONFileAcl
@@ -221,7 +221,7 @@ func Getacls(log *logging.Logger, db *DB, element string, section *common.Sectio
 	return result, err
 }
 
-func Getdataset(log *logging.Logger, tx *sql.Tx, grace string) int {
+func GetDataset(log *logging.Logger, tx *sql.Tx, grace string) int {
 	var result int
 
 	var query = "SELECT actual FROM status WHERE grace = $1"
@@ -234,7 +234,7 @@ func Getdataset(log *logging.Logger, tx *sql.Tx, grace string) int {
 	return result
 }
 
-func Setdataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) error {
+func SetDataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) error {
 	var stmt *sql.Stmt
 	var err error
 
@@ -259,7 +259,7 @@ func Setdataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) error
 	return nil
 }
 
-func Deldataset(log *logging.Logger, db *DB, section, grace string, dataset int) error {
+func DelDataset(log *logging.Logger, db *DB, section, grace string, dataset int) error {
 	var tx *sql.Tx
 	var stmt *sql.Stmt
 	var err error

@@ -18,13 +18,13 @@ import (
 	"server/network"
 )
 
-func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, data common.JSONFile, previous bool) {
+func fsSaveData(log *logging.Logger, cfg *ini.File, section *common.Section, data common.JSONFile, previous bool) {
 	var item, source, dest, hash string
 	var cmd common.JSONMessage
 	var conn net.Conn
 	var err error
 
-	item = dataset.Convertpath(data.Os, data.Name)
+	item = dataset.ConvertPath(data.Os, data.Name)
 	source = dataset.Path(cfg, section, true) + string(filepath.Separator) + item
 	dest = dataset.Path(cfg, section, false) + string(filepath.Separator) + item
 
@@ -54,7 +54,7 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 			cmd.Command.Name = "get"
 			cmd.Command.Element = data
 
-			conn, err = network.Getsocket(cfg.Section(section.Name))
+			conn, err = network.GetSocket(cfg.Section(section.Name))
 			if err != nil {
 				log.Error("Error when opening connection with section " + section.Name)
 				log.Debug("Trace: " + err.Error())
@@ -64,7 +64,7 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 
 			cmd.Send(conn)
 
-			if hash, err = common.Receivefile(dest, conn); err != nil {
+			if hash, err = common.ReceiveFile(dest, conn); err != nil {
 				log.Error("Error when receiving file " + data.Name)
 				log.Debug("Trace: " + err.Error())
 			}
@@ -77,7 +77,7 @@ func fs_save_data(log *logging.Logger, cfg *ini.File, section *common.Section, d
 				log.Debug("Hash for file " + dest + " is " + hash)
 
 				if section.Compressed {
-					dataset.Compressfile(log, dest)
+					dataset.CompressFile(log, dest)
 				}
 			}
 		}

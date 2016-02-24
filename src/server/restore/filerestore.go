@@ -18,7 +18,7 @@ import (
 	"server/network"
 )
 
-func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
+func FileRestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var cmd common.JSONMessage
 	var res common.JSONFile
 	var db database.DB
@@ -34,10 +34,10 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 		log.Debug("About to full restore")
 		cmd.Command.ACL = cfg.Section(section.Name).Key("acl").MustBool()
 		for _, item := range []string{"directory", "file", "symlink"} {
-			for res = range database.Listitems(log, &db, section, item) {
+			for res = range database.ListItems(log, &db, section, item) {
 				if cmd.Command.ACL {
 					log.Debug("About to restore ACLs for " + res.Name)
-					res.Acl, err = database.Getacls(log, &db, res.Name, section)
+					res.Acl, err = database.GetAcls(log, &db, res.Name, section)
 					if err != nil {
 						log.Error("ACLs extraction error for " + res.Name)
 						log.Debug("error: " + err.Error())
@@ -51,7 +51,7 @@ func Filerestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	} else {
 		log.Debug("About to restore path " + cfg.Section(section.Name).Key("path").String())
 
-		cmd.Command.Element, err = database.Getitem(log, &db, cfg.Section(section.Name).Key("path").String(), section)
+		cmd.Command.Element, err = database.GetItem(log, &db, cfg.Section(section.Name).Key("path").String(), section)
 		if err != nil {
 			log.Error("Error when putting data to section " + section.Name)
 			log.Debug("error: " + err.Error())
@@ -66,7 +66,7 @@ func put(log *logging.Logger, section *common.Section, cfg *ini.File, cmd *commo
 	var conn net.Conn
 	var err error
 
-	conn, err = network.Getsocket(cfg.Section(section.Name))
+	conn, err = network.GetSocket(cfg.Section(section.Name))
 	if err != nil {
 		log.Error("Error when opening connection with section " + section.Name)
 		log.Debug("error: " + err.Error())
@@ -78,7 +78,7 @@ func put(log *logging.Logger, section *common.Section, cfg *ini.File, cmd *commo
 
 	if cmd.Command.Element.Type == "file" {
 		transfered := dataset.Path(cfg, section, false) + string(filepath.Separator) + cmd.Command.Element.Name
-		if err := common.Sendfile(transfered, conn); err != nil {
+		if err := common.SendFile(transfered, conn); err != nil {
 			log.Debug("Error when sending file: ", err.Error())
 		}
 

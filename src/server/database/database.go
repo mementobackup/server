@@ -24,7 +24,7 @@ type DB struct {
 	Conn     *sql.DB
 }
 
-func (db *DB) populate(cfg *ini.File) {
+func (db *DB) retrieveCfgData(cfg *ini.File) {
 	db.User = cfg.Section("database").Key("user").String()
 	db.Password = cfg.Section("database").Key("password").String()
 	db.Host = cfg.Section("database").Key("host").String()
@@ -35,7 +35,7 @@ func (db *DB) populate(cfg *ini.File) {
 func (db *DB) Open(log *logging.Logger, cfg *ini.File) {
 	var err error
 
-	db.populate(cfg)
+	db.retrieveCfgData(cfg)
 
 	// TODO: For now, SSL connection to PostgreSQL is disabled
 	dsn := strings.Join([]string{

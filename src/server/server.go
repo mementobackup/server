@@ -36,7 +36,7 @@ func errorMsg(log *logging.Logger, position int, message string) *common.Operati
 	}
 }
 
-func exec_command(log *logging.Logger, section *ini.Section, command string) error {
+func execCommand(log *logging.Logger, section *ini.Section, command string) error {
 	var buff *bufio.Reader
 	var conn net.Conn
 	var cmd common.JSONMessage
@@ -45,7 +45,7 @@ func exec_command(log *logging.Logger, section *ini.Section, command string) err
 	var result []byte
 
 	if section.Key(command).String() != "" {
-		conn, err = network.Getsocket(section)
+		conn, err = network.GetSocket(section)
 		if err != nil {
 			return errorMsg(log, 1, "Connection with "+command+" failed: "+err.Error())
 		}
