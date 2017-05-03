@@ -32,7 +32,7 @@ go get github.com/go-ini/ini
 go get github.com/lib/pq
 go get github.com/op/go-logging
 go get github.com/mementobackup/common/src/common
-go build mserver.go
+go build -ldflags="-s -w" mserver.go
 ```
 
 ## Installation:
