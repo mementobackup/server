@@ -9,10 +9,8 @@ package database
 
 import (
 	"database/sql"
-	"github.com/go-ini/ini"
 	_ "github.com/gwenn/gosqlite"
 	"github.com/op/go-logging"
-	"strings"
 )
 
 type DB struct {
