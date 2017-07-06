@@ -24,7 +24,7 @@ type DB struct {
 	Conn     *sql.DB
 }
 
-func (db *DB) Open(log *logging.Logger, cfg *ini.File) {
+func (db *DB) Open(log *logging.Logger, location string) {
 	var err error
 
 	// TODO: For now, SSL connection to PostgreSQL is disabled
@@ -37,7 +37,7 @@ func (db *DB) Open(log *logging.Logger, cfg *ini.File) {
 		"sslmode=disable",
 	}, " ")
 
-	db.Conn, err = sql.Open("postgres", dsn)
+	db.Conn, err = sql.Open("sqlite3", location)
 
 	if err != nil {
 		log.Fatal(err)
