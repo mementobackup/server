@@ -26,6 +26,10 @@ func (db *DB) Setlocation(paths ...string) {
 			db.Location,
 			path}, string(filepath.Separator))
 	}
+
+	db.Location = strings.Join([]string{
+		db.Location,
+		".storage.db"}, string(filepath.Separator))
 }
 
 func (db *DB) Open(log *logging.Logger) {
