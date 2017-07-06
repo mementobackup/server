@@ -28,9 +28,8 @@ func (db *DB) Setlocation(paths ...string) {
 	}
 }
 
-func (db *DB) Open(log *logging.Logger, location string) {
+func (db *DB) Open(log *logging.Logger) {
 	var err error
-	db.Location = location
 
 	db.Conn, err = sql.Open("sqlite3", db.Location)
 
