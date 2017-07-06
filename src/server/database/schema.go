@@ -15,13 +15,9 @@ import (
 
 func (db *DB) check(log *logging.Logger) error {
 	var counted int
+	query := "SELECT count(*) FROM sqlite_master"
 
-	query := "SELECT Count(*) FROM information_schema.tables " +
-	"WHERE table_schema = 'public' " +
-	"AND table_name in ('status', 'attrs', 'acls')"
-
-	err := db.Conn.QueryRow(query).Scan(&counted)
-	if err != nil {
+	if err := db.Conn.QueryRow(query).Scan(&counted); err != nil {
 		log.Fatal("Schema 1: Error in check database structure: " + err.Error())
 	}
 
@@ -44,32 +40,32 @@ func (db *DB) create(log *logging.Logger) {
 
 	var tables = []string{
 		"CREATE TABLE status ( " +
-		"grace VARCHAR(5), " +
-		" actual INTEGER, " +
-		" last_run TIMESTAMP)",
+			"grace VARCHAR(5), " +
+			" actual INTEGER, " +
+			" last_run TIMESTAMP)",
 		"CREATE TABLE attrs ( " +
-		"area VARCHAR(30), " +
-		"grace VARCHAR(5), " +
-		"dataset INTEGER, " +
-		"element VARCHAR(1024), " +
-		"os VARCHAR(32), " +
-		"username VARCHAR(50), " +
-		"groupname VARCHAR(50), " +
-		"type VARCHAR(9), " +
-		"link VARCHAR(1024), " +
-		"hash VARCHAR(32), " +
-		"perms VARCHAR(32), " +
-		"mtime BIGINT, " +
-		"ctime BIGINT, " +
-		"compressed BOOLEAN)",
+			"area VARCHAR(30), " +
+			"grace VARCHAR(5), " +
+			"dataset INTEGER, " +
+			"element VARCHAR(1024), " +
+			"os VARCHAR(32), " +
+			"username VARCHAR(50), " +
+			"groupname VARCHAR(50), " +
+			"type VARCHAR(9), " +
+			"link VARCHAR(1024), " +
+			"hash VARCHAR(32), " +
+			"perms VARCHAR(32), " +
+			"mtime BIGINT, " +
+			"ctime BIGINT, " +
+			"compressed BOOLEAN)",
 		"CREATE TABLE acls ( " +
-		"area VARCHAR(30), " +
-		"grace VARCHAR(5), " +
-		"dataset INTEGER, " +
-		"element VARCHAR(1024), " +
-		"name VARCHAR(50), " +
-		"type VARCHAR(5), " +
-		"perms VARCHAR(3))",
+			"area VARCHAR(30), " +
+			"grace VARCHAR(5), " +
+			"dataset INTEGER, " +
+			"element VARCHAR(1024), " +
+			"name VARCHAR(50), " +
+			"type VARCHAR(5), " +
+			"perms VARCHAR(3))",
 	}
 
 	var data = []string{
