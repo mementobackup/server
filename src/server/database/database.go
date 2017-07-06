@@ -11,11 +11,21 @@ import (
 	"database/sql"
 	_ "github.com/gwenn/gosqlite"
 	"github.com/op/go-logging"
+	"path/filepath"
+	"strings"
 )
 
 type DB struct {
 	Location string
 	Conn     *sql.DB
+}
+
+func (db *DB) Setlocation(paths ...string) {
+	for _, path := range paths {
+		db.Location = strings.Join([]string{
+			db.Location,
+			path}, string(filepath.Separator))
+	}
 }
 
 func (db *DB) Open(log *logging.Logger, location string) {
