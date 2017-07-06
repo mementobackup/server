@@ -16,28 +16,15 @@ import (
 )
 
 type DB struct {
-	User     string
-	Password string
-	Host     string
-	Port     string
-	Database string
+	Location string
 	Conn     *sql.DB
 }
 
 func (db *DB) Open(log *logging.Logger, location string) {
 	var err error
+	db.Location = location
 
-	// TODO: For now, SSL connection to PostgreSQL is disabled
-	dsn := strings.Join([]string{
-		"user=" + db.User,
-		"password=" + db.Password,
-		"host=" + db.Host,
-		"port=" + db.Port,
-		"dbname=" + db.Database,
-		"sslmode=disable",
-	}, " ")
-
-	db.Conn, err = sql.Open("sqlite3", location)
+	db.Conn, err = sql.Open("sqlite3", db.Location)
 
 	if err != nil {
 		log.Fatal(err)
