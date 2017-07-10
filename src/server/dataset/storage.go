@@ -25,7 +25,12 @@ func DelDataset(log *logging.Logger, cfg *ini.File, section, grace string, datas
 
 	log.Debug("About to delete dataset " + strconv.Itoa(dataset) + " for section " + section + " and grace " + grace)
 
-	db.Open(log, cfg)
+	db.Setlocation(
+		cfg.Section("general").Key("repository").String(),
+		grace,
+		strconv.Itoa(dataset),
+		section)
+	db.Open(log)
 	defer db.Close()
 
 	err := database.DelDataset(log, &db, section, grace, dataset)
