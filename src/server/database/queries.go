@@ -123,22 +123,16 @@ func ListItems(log *logging.Logger, db *DB, section *common.Section, itemtype st
 	return result
 }
 
-func ItemExist(log *logging.Logger, db *DB, item *common.JSONFile, section *common.Section, previous int) bool {
-	var dataset, result int
-
-	if previous > 0 {
-		dataset = previous
-	} else {
-		dataset = section.Dataset
-	}
+func ItemExist(log *logging.Logger, db *DB, item *common.JSONFile, section *common.Section) bool {
+	var result int
 
 	var query = "SELECT count(element) FROM attrs" +
 		" WHERE element = $1 AND hash = $2" +
-		" AND area = $3 AND grace = $4 AND dataset = $5"
+		" AND area = $3 AND grace = $4"
 
-	log.Debug("Searching if item " + item.Name + " exists in dataset " + strconv.Itoa(dataset))
+	log.Debug("Searching if item " + item.Name + " exists in database " + db.Location)
 	err := db.Conn.QueryRow(query,
-		item.Name, item.Hash, section.Name, section.Grace, dataset).Scan(&result)
+		item.Name, item.Hash, section.Name, section.Grace).Scan(&result)
 	if err != nil {
 		log.Debug("Error when finding item: " + err.Error())
 		return false
