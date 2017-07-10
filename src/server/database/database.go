@@ -28,7 +28,6 @@ func (db *DB) Setlocation(paths ...string) {
 			".storage.db"},
 			string(filepath.Separator))
 	}
-
 }
 
 func (db *DB) Open(log *logging.Logger) {
