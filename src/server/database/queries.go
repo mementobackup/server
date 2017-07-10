@@ -9,7 +9,6 @@ package database
 
 import (
 	"database/sql"
-	"errors"
 	"github.com/mementobackup/common/src/common"
 	"github.com/op/go-logging"
 	"strconv"
@@ -249,58 +248,6 @@ func SetDataset(log *logging.Logger, tx *sql.Tx, actual int, grace string) error
 	log.Debug("Dataset updated: " + strconv.Itoa(actual))
 
 	stmt.Close()
-
-	return nil
-}
-
-func DelDataset(log *logging.Logger, db *DB, section, grace string, dataset int) error {
-	var tx *sql.Tx
-	var stmt *sql.Stmt
-	var err error
-
-	var tables = []string{"attrs", "acls"}
-	var queries = []string{
-		"DELETE FROM " + tables[0] + " WHERE grace = $1 AND dataset = $2",
-		"DELETE FROM " + tables[1] + " WHERE grace = $1 AND dataset = $2",
-	}
-
-	var geterror = func(debugmessage, message string) error {
-		tx.Rollback()
-
-		log.Debug(debugmessage)
-		return errors.New(message)
-	}
-
-	if section != "" {
-		queries[0] = queries[0] + " AND area = $3"
-		queries[1] = queries[1] + " AND area = $3"
-	}
-
-	tx, err = db.Conn.Begin()
-	if err != nil {
-		return geterror("Transaction error: "+err.Error(), "Problems with opening transaction")
-	}
-
-	for item, query := range queries {
-		log.Debug("Delete table " + tables[item])
-
-		stmt, err = tx.Prepare(query)
-		if err != nil {
-			return geterror("Error in prepare: "+err.Error(), "Problems when preparing query")
-		}
-
-		if section != "" {
-			_, err = stmt.Exec(grace, dataset, section)
-		} else {
-			_, err = stmt.Exec(grace, dataset)
-		}
-
-		if err != nil {
-			return geterror("Exec error: "+err.Error(), "Delete of dataset "+tables[item]+" wasn't possible")
-		}
-		stmt.Close()
-	}
-	tx.Commit()
 
 	return nil
 }
