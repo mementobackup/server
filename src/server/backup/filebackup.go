@@ -51,7 +51,7 @@ func fsGetMetadata(log *logging.Logger, section *common.Section, cfg *ini.File) 
 
 	cmd.Send(conn)
 
-	db.Setlocation("", cfg.Section("general").Key("repository").String(),
+	db.Setlocation(cfg.Section("general").Key("repository").String(),
 		section.Grace,
 		strconv.Itoa(section.Dataset),
 		section.Name)
@@ -122,11 +122,11 @@ func fsGetData(log *logging.Logger, section *common.Section, cfg *ini.File) {
 		previous = section.Dataset - 1
 	}
 
-	curdb.Setlocation("", cfg.Section("general").Key("repository").String(),
+	curdb.Setlocation(cfg.Section("general").Key("repository").String(),
 		section.Grace,
 		strconv.Itoa(section.Dataset),
 		section.Name)
-	olddb.Setlocation("", cfg.Section("general").Key("repository").String(),
+	olddb.Setlocation(cfg.Section("general").Key("repository").String(),
 		section.Grace,
 		strconv.Itoa(previous),
 		section.Name)
