@@ -15,28 +15,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"server/database"
 	"strconv"
 	"strings"
 )
 
 func DelDataset(log *logging.Logger, cfg *ini.File, section, grace string, dataset int) {
-	var db database.DB
-
 	log.Debug("About to delete dataset " + strconv.Itoa(dataset) + " for section " + section + " and grace " + grace)
-
-	db.Setlocation(
-		cfg.Section("general").Key("repository").String(),
-		grace,
-		strconv.Itoa(dataset),
-		section)
-	db.Open(log)
-	defer db.Close()
-
-	err := database.DelDataset(log, &db, section, grace, dataset)
-	if err != nil {
-		log.Error(err.Error())
-	}
 
 	repository := Path(cfg, &common.Section{
 		Name:    section,
