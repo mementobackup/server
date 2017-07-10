@@ -21,7 +21,7 @@ import (
 
 func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	const POOL = 5
-	var db database.DB
+	var sysdb database.DB
 	var tx *sql.Tx
 	var c = make(chan bool, POOL)
 	var wg = new(sync.WaitGroup)
@@ -33,10 +33,11 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 
 	maxdatasets, _ = cfg.Section("dataset").Key(grace).Int()
 
-	db.Open(log, cfg)
-	defer db.Close()
+	sysdb.Setlocation(cfg.Section("general").Key("repository").String())
+	sysdb.Open(log)
+	defer sysdb.Close()
 
-	tx, _ = db.Conn.Begin()
+	tx, _ = sysdb.Conn.Begin()
 	dataset = database.GetDataset(log, tx, grace)
 	tx.Commit()
 
@@ -68,7 +69,7 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	wg.Wait() // Wait for all the children to die
 	close(c)
 
-	tx, _ = db.Conn.Begin()
+	tx, _ = sysdb.Conn.Begin()
 	database.SetDataset(log, tx, dataset, grace)
 	tx.Commit()
 }
