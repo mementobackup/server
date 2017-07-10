@@ -18,6 +18,7 @@ import (
 	"net"
 	"server/database"
 	"server/network"
+	"strconv"
 	"strings"
 )
 
@@ -50,7 +51,11 @@ func fsGetMetadata(log *logging.Logger, section *common.Section, cfg *ini.File) 
 
 	cmd.Send(conn)
 
-	db.Open(log, cfg)
+	db.Setlocation("", cfg.Section("general").Key("repository").String(),
+		section.Grace,
+		strconv.Itoa(section.Dataset),
+		section.Name)
+	db.Open(log)
 	defer db.Close()
 
 	tx, err = db.Conn.Begin()
@@ -109,7 +114,7 @@ func fsGetMetadata(log *logging.Logger, section *common.Section, cfg *ini.File) 
 func fsGetData(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var previous int
 	var res common.JSONFile
-	var db database.DB
+	var curdb, olddb database.DB
 
 	if section.Dataset-1 == 0 {
 		previous = cfg.Section("dataset").Key(section.Grace).MustInt()
@@ -117,18 +122,30 @@ func fsGetData(log *logging.Logger, section *common.Section, cfg *ini.File) {
 		previous = section.Dataset - 1
 	}
 
-	db.Open(log, cfg)
-	defer db.Close()
+	curdb.Setlocation("", cfg.Section("general").Key("repository").String(),
+		section.Grace,
+		strconv.Itoa(section.Dataset),
+		section.Name)
+	olddb.Setlocation("", cfg.Section("general").Key("repository").String(),
+		section.Grace,
+		strconv.Itoa(previous),
+		section.Name)
+
+	curdb.Open(log)
+	olddb.Open(log)
+
+	defer curdb.Close()
+	defer olddb.Close()
 
 	for _, item := range []string{"directory", "file", "symlink"} {
-		for res = range database.ListItems(log, &db, section, item) {
+		for res = range database.ListItems(log, &curdb, section, item) {
 			switch item {
 			case "directory":
 				fsSaveData(log, cfg, section, res, false)
 			case "symlink":
 				fsSaveData(log, cfg, section, res, false)
 			case "file":
-				if database.ItemExist(log, &db, &res, section, previous) {
+				if database.ItemExist(log, &olddb, &res, section) {
 					fsSaveData(log, cfg, section, res, true)
 				} else {
 					fsSaveData(log, cfg, section, res, false)
