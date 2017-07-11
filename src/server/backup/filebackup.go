@@ -16,9 +16,12 @@ import (
 	"github.com/op/go-logging"
 	"io"
 	"net"
+	"os"
+	"path/filepath"
 	"server/database"
 	"server/dataset"
 	"server/network"
+	"strconv"
 	"strings"
 )
 
@@ -136,6 +139,19 @@ func fsGetData(log *logging.Logger, section *common.Section, cfg *ini.File) {
 }
 
 func Filebackup(log *logging.Logger, section *common.Section, cfg *ini.File) {
+	// Check if backup directory exists
+	dir := strings.Join(
+		[]string{
+			cfg.Section("general").Key("repository").String(),
+			section.Grace,
+			strconv.Itoa(section.Dataset),
+			section.Name,
+		}, string(filepath.Separator))
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.MkdirAll(dir, 0755)
+	}
+
 	// Retrieve file's metadata
 	fsGetMetadata(log, section, cfg)
 
