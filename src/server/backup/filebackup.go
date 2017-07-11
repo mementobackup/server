@@ -17,8 +17,8 @@ import (
 	"io"
 	"net"
 	"server/database"
+	"server/dataset"
 	"server/network"
-	"strconv"
 	"strings"
 )
 
@@ -51,11 +51,7 @@ func fsGetMetadata(log *logging.Logger, section *common.Section, cfg *ini.File) 
 
 	cmd.Send(conn)
 
-	db.Setlocation(cfg.Section("general").Key("repository").String(),
-		section.Grace,
-		strconv.Itoa(section.Dataset),
-		section.Name)
-	db.Open(log)
+	db.Open(log, dataset.Path(cfg, section, false))
 	defer db.Close()
 
 	tx, err = db.Conn.Begin()
@@ -112,27 +108,11 @@ func fsGetMetadata(log *logging.Logger, section *common.Section, cfg *ini.File) 
 }
 
 func fsGetData(log *logging.Logger, section *common.Section, cfg *ini.File) {
-	var previous int
 	var res common.JSONFile
 	var curdb, olddb database.DB
 
-	if section.Dataset-1 == 0 {
-		previous = cfg.Section("dataset").Key(section.Grace).MustInt()
-	} else {
-		previous = section.Dataset - 1
-	}
-
-	curdb.Setlocation(cfg.Section("general").Key("repository").String(),
-		section.Grace,
-		strconv.Itoa(section.Dataset),
-		section.Name)
-	olddb.Setlocation(cfg.Section("general").Key("repository").String(),
-		section.Grace,
-		strconv.Itoa(previous),
-		section.Name)
-
-	curdb.Open(log)
-	olddb.Open(log)
+	curdb.Open(log, dataset.Path(cfg, section, false))
+	olddb.Open(log, dataset.Path(cfg, section, true))
 
 	defer curdb.Close()
 	defer olddb.Close()

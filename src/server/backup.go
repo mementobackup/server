@@ -33,8 +33,7 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 
 	maxdatasets, _ = cfg.Section("dataset").Key(grace).Int()
 
-	sysdb.Setlocation(cfg.Section("general").Key("repository").String())
-	sysdb.Open(log)
+	sysdb.Open(log, cfg.Section("general").Key("repository").String())
 	defer sysdb.Close()
 
 	tx, _ = sysdb.Conn.Begin()

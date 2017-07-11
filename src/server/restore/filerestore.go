@@ -16,7 +16,6 @@ import (
 	"server/database"
 	"server/dataset"
 	"server/network"
-	"strconv"
 )
 
 func FileRestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
@@ -25,11 +24,7 @@ func FileRestore(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var db database.DB
 	var err error
 
-	db.Setlocation(cfg.Section("general").Key("repository").String(),
-		section.Grace,
-		strconv.Itoa(section.Dataset),
-		section.Name)
-	db.Open(log)
+	db.Open(log, dataset.Path(cfg, section, false))
 	defer db.Close()
 
 	cmd.Context = "file"
