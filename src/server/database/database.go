@@ -49,6 +49,9 @@ func (db *DB) Open(log *logging.Logger) {
 	}
 	log.Debug("Connection with database opened")
 
+	db.Conn.Exec("PRAGMA synchronous = OFF")
+	db.Conn.Exec("PRAGMA journal_mode = WAL")
+
 	if err = db.check(log); err != nil {
 		db.create(log)
 		log.Debug("Created database schema")
