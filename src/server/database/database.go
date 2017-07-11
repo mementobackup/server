@@ -20,22 +20,13 @@ type DB struct {
 	Conn     *sql.DB
 }
 
-func (db *DB) Setlocation(paths ...string) {
-	for _, path := range paths {
-		db.Location = strings.Join([]string{
-			db.Location,
-			path},
-			string(filepath.Separator))
-	}
+func (db *DB) Open(log *logging.Logger, path string) {
+	var err error
 
 	db.Location = strings.Join([]string{
-		db.Location,
+		path,
 		".storage.db"},
 		string(filepath.Separator))
-}
-
-func (db *DB) Open(log *logging.Logger) {
-	var err error
 
 	db.Conn, err = sql.Open("sqlite3", db.Location)
 
