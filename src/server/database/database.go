@@ -9,7 +9,7 @@ package database
 
 import (
 	"database/sql"
-	_ "github.com/gwenn/gosqlite"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/op/go-logging"
 	"path/filepath"
 	"strings"
