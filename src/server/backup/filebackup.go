@@ -113,12 +113,17 @@ func fsGetMetadata(log *logging.Logger, section *common.Section, cfg *ini.File) 
 func fsGetData(log *logging.Logger, section *common.Section, cfg *ini.File) {
 	var res common.JSONFile
 	var curdb, olddb database.DB
+	var exists bool
 
 	curdb.Open(log, dataset.Path(cfg, section, false))
-	olddb.Open(log, dataset.Path(cfg, section, true))
-
 	defer curdb.Close()
-	defer olddb.Close()
+
+	if err := olddb.Open(log, dataset.Path(cfg, section, true)); err == nil {
+		exists = true
+		defer olddb.Close()
+	} else {
+		exists = false
+	}
 
 	for _, item := range []string{"directory", "file", "symlink"} {
 		for res = range database.ListItems(log, &curdb, section, item) {
@@ -128,7 +133,7 @@ func fsGetData(log *logging.Logger, section *common.Section, cfg *ini.File) {
 			case "symlink":
 				fsSaveData(log, cfg, section, res, false)
 			case "file":
-				if database.ItemExist(log, &olddb, &res, section) {
+				if exists && database.ItemExist(log, &olddb, &res, section) {
 					fsSaveData(log, cfg, section, res, true)
 				} else {
 					fsSaveData(log, cfg, section, res, false)
