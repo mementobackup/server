@@ -20,7 +20,7 @@ type DB struct {
 	Conn     *sql.DB
 }
 
-func (db *DB) Open(log *logging.Logger, path string) {
+func (db *DB) Open(log *logging.Logger, path string) error {
 	var err error
 
 	db.Location = strings.Join([]string{
@@ -36,7 +36,8 @@ func (db *DB) Open(log *logging.Logger, path string) {
 
 	err = db.Conn.Ping()
 	if err != nil {
-		log.Fatal(err)
+		log.Debug(err)
+		return err
 	}
 	log.Debug("Connection with database opened")
 
@@ -47,6 +48,8 @@ func (db *DB) Open(log *logging.Logger, path string) {
 		db.create(log)
 		log.Debug("Created database schema")
 	}
+
+	return nil
 }
 
 func (db *DB) Close() {
