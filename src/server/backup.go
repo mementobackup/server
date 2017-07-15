@@ -26,7 +26,7 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	var c = make(chan bool, POOL)
 	var wg = new(sync.WaitGroup)
 
-	var dataset, maxdatasets int
+	var curds, maxdatasets int
 	var sections []*ini.Section
 
 	sections = cfg.Sections()
@@ -37,17 +37,17 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	defer sysdb.Close()
 
 	tx, _ = sysdb.Conn.Begin()
-	dataset = database.GetDataset(log, tx, grace)
+	curds = database.GetDataset(log, tx, grace)
 	tx.Commit()
 
 	if !reload {
-		if nextds := dataset + 1; nextds > maxdatasets {
-			dataset = 1
+		if nextds := curds + 1; nextds > maxdatasets {
+			curds = 1
 		} else {
-			dataset = dataset + 1
+			curds = curds + 1
 		}
 	}
-	log.Info("Dataset processed: " + strconv.Itoa(dataset))
+	log.Info("Dataset processed: " + strconv.Itoa(curds))
 
 	wg.Add(len(sections) - len(SECT_RESERVED))
 	for _, section := range sections {
@@ -56,7 +56,7 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 				sect := common.Section{
 					Name:       section.Name(),
 					Grace:      grace,
-					Dataset:    dataset,
+					Dataset:    curds,
 					Compressed: section.Key("compress").MustBool(),
 				}
 
@@ -69,7 +69,7 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 	close(c)
 
 	tx, _ = sysdb.Conn.Begin()
-	database.SetDataset(log, tx, dataset, grace)
+	database.SetDataset(log, tx, curds, grace)
 	tx.Commit()
 }
 
