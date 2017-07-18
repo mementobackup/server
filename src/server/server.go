@@ -17,7 +17,7 @@ import (
 	"server/network"
 )
 
-var SECT_RESERVED = []string{"DEFAULT", "general", "database", "dataset"}
+var SECT_RESERVED = []string{"DEFAULT", "general", "dataset"}
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
