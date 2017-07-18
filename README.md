@@ -20,7 +20,7 @@ It save data attribute (owner, group, permission, ACL) into database.
 
 ## Dependencies:
 
- * PostgreSQL
+No external dependencies are required
 
 ## Building:
 ```
@@ -29,7 +29,7 @@ export GOPATH=`pwd`
 git clone git@github.com:mementobackup/server.git .
 go get github.com/gaal/go-options/options
 go get github.com/go-ini/ini
-go get github.com/lib/pq
+go get github.com/mattn/go-sqlite3
 go get github.com/op/go-logging
 go get github.com/mementobackup/common/src/common
 go build -ldflags="-s -w" mserver.go
@@ -37,7 +37,6 @@ go build -ldflags="-s -w" mserver.go
 
 ## Installation:
 
- - Create database on PostgreSQL;
  - Edit the configuration file (see USAGE);
  - Execute server.
 
@@ -66,13 +65,6 @@ This is an example of configuration file:
 repository = /full/path/to/store/backups
 log_file = memento.log
 log_level = INFO
-
-[database]
-host = postgresql-host
-port = 5432
-user = postgresql-user
-password = postgresql-password
-dbname = postgresql-database
 
 [dataset]
 hour = 24
