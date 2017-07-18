@@ -20,17 +20,14 @@ import (
 )
 
 func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
-	const POOL = 5
 	var sysdb database.DB
 	var tx *sql.Tx
-	var c = make(chan bool, POOL)
 	var wg = new(sync.WaitGroup)
 
 	var curds, maxdatasets int
 	var sections []*ini.Section
 
 	sections = cfg.Sections()
-
 	maxdatasets, _ = cfg.Section("dataset").Key(grace).Int()
 
 	sysdb.Open(log, cfg.Section("general").Key("repository").String())
@@ -60,24 +57,19 @@ func Backup(log *logging.Logger, cfg *ini.File, grace string, reload bool) {
 					Compressed: section.Key("compress").MustBool(),
 				}
 
-				go fileBackup(log, &sect, cfg, c, wg)
-				c <- true
+				go fileBackup(log, &sect, cfg, wg)
 			}
 		}
 	}
 	wg.Wait() // Wait for all the children to die
-	close(c)
 
 	tx, _ = sysdb.Conn.Begin()
 	database.SetDataset(log, tx, curds, grace)
 	tx.Commit()
 }
 
-func fileBackup(log *logging.Logger, section *common.Section, cfg *ini.File, c chan bool, wg *sync.WaitGroup) {
-	defer func() {
-		<-c
-		wg.Done()
-	}()
+func fileBackup(log *logging.Logger, section *common.Section, cfg *ini.File, wg *sync.WaitGroup) {
+	defer wg.Done()
 
 	dataset.DelDataset(log, cfg, section.Name, section.Grace, section.Dataset)
 
